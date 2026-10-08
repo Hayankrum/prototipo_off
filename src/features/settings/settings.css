@@ -66,6 +66,23 @@
   gap: 8px;
 }
 
+.instalado-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cor-texto-terciario);
+  font-size: 0.8125rem;
+  text-align: right;
+}
+
+.instalado-ponto {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--cor-sucesso);
+}
+
 .armazenamento-linha {
   display: flex;
   align-items: center;

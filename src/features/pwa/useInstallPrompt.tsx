@@ -16,6 +16,7 @@ interface EventoInstalacao extends Event {
 
 export interface Instalacao {
   canInstall: boolean
+  disponivel: boolean
   isIOS: boolean
   isInstalled: boolean
   install: () => Promise<void>
@@ -131,6 +132,7 @@ export function InstallPromptProvider({ children }: PropsWithChildren) {
   const valor = useMemo<EstadoInstalacao>(
     () => ({
       canInstall: !instalado && (evento !== null || ios) && !descartadoRecentemente,
+      disponivel: !instalado && (evento !== null || ios),
       isIOS: ios,
       isInstalled: instalado,
       install,
@@ -148,6 +150,7 @@ export function useInstallPrompt(): Instalacao {
   return useMemo(
     () => ({
       canInstall: contexto.canInstall,
+      disponivel: contexto.disponivel,
       isIOS: contexto.isIOS,
       isInstalled: contexto.isInstalled,
       install: contexto.install,

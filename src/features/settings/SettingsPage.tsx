@@ -57,7 +57,7 @@ const DESCRICOES_TEMA: Record<Tema, string> = {
 export function SettingsPage() {
   const { mostrar } = useToast()
   const { tema, ultimoBackupEm, definirTema } = useSettings()
-  const { canInstall, isIOS, install } = useInstallPrompt()
+  const { disponivel, isIOS, isInstalled, install } = useInstallPrompt()
 
   const arquivoRef = useRef<HTMLInputElement>(null)
   const [backupLido, setBackupLido] = useState<{ arquivo: File; backup: ArquivoBackup } | null>(null)
@@ -178,32 +178,42 @@ export function SettingsPage() {
         </div>
       </section>
 
-      {canInstall ? (
-        <section className="cartao" aria-labelledby="titulo-instalar">
-          <h2 className="cartao-titulo" id="titulo-instalar">
-            Aplicativo
-          </h2>
-          <div className="ajustes-linha">
-            <div className="ajustes-info">
-              <p className="ajustes-rotulo">Instalar PWA</p>
-              <p className="ajustes-descricao">
-                {isIOS
+      <section className="cartao" aria-labelledby="titulo-instalar">
+        <h2 className="cartao-titulo" id="titulo-instalar">
+          Aplicativo
+        </h2>
+        <div className="ajustes-linha">
+          <div className="ajustes-info">
+            <p className="ajustes-rotulo">Instalar PWA</p>
+            <p className="ajustes-descricao">
+              {isInstalled
+                ? 'App instalado e abrindo como aplicativo.'
+                : isIOS
                   ? 'No iPhone ou iPad, adicione pela tela de início usando o Safari.'
-                  : 'Adicione à tela inicial para acesso rápido.'}
-              </p>
-            </div>
+                  : 'Adicione à tela inicial para acesso rápido, mesmo offline.'}
+            </p>
+          </div>
+          {isInstalled ? (
+            <span className="instalado-status">
+              <span className="instalado-ponto" aria-hidden="true" />
+              App instalado
+            </span>
+          ) : disponivel ? (
             <Button
-              variante="secundario"
-              tamanho="icone"
-              aria-label="Instalar aplicativo"
-              title="Instalar aplicativo"
+              variante="primario"
+              tamanho="pequeno"
               onClick={() => void install()}
             >
-              <Download size={18} aria-hidden="true" />
+              <Download size={16} aria-hidden="true" />
+              Instalar
             </Button>
-          </div>
-        </section>
-      ) : null}
+          ) : (
+            <span className="instalado-status">
+              Use o menu do navegador → Instalar app
+            </span>
+          )}
+        </div>
+      </section>
 
       <section className="cartao" aria-labelledby="titulo-dados">
         <h2 className="cartao-titulo" id="titulo-dados">
