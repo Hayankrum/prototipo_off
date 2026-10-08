@@ -1,0 +1,116 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.shell-cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--cor-superficie);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.shell-cabecalho-interno {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 860px;
+  margin-inline: auto;
+  padding: 12px 16px;
+}
+
+.shell-marca {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--cor-texto);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.shell-conteudo {
+  flex: 1;
+  width: 100%;
+  max-width: 860px;
+  margin-inline: auto;
+  padding: 18px 16px calc(96px + env(safe-area-inset-bottom));
+}
+
+.shell-conteudo:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: -2px;
+}
+
+.bottom-nav {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 50;
+  background: var(--cor-superficie);
+  border-top: 1px solid var(--cor-borda);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-lista {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  width: 100%;
+  max-width: 860px;
+  margin-inline: auto;
+  padding: 4px 8px;
+  list-style: none;
+}
+
+.bottom-nav-item {
+  display: flex;
+}
+
+.bottom-nav-link {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 56px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  color: var(--cor-texto-suave);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.bottom-nav-link:hover {
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto);
+}
+
+.bottom-nav-link--ativo {
+  color: var(--cor-acento);
+}
+
+.bottom-nav-link--ativo::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 28px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--cor-acento);
+}
+
+.bottom-nav-rotulo {
+  text-align: center;
+}
+
+@media (min-width: 720px) {
+  .shell-conteudo {
+    padding-top: 28px;
+  }
+}

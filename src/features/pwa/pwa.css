@@ -1,0 +1,112 @@
+.install-banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(78px + env(safe-area-inset-bottom));
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(560px, calc(100vw - 24px));
+  padding: 12px;
+  transform: translateX(-50%);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 14px;
+  box-shadow: var(--sombra);
+}
+
+.install-banner-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--cor-superficie-2);
+  color: var(--cor-acento);
+}
+
+.install-banner-texto {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.install-banner-titulo {
+  font-size: 0.95rem;
+}
+
+.install-banner-descricao {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.install-banner-acoes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.update-toast {
+  position: fixed;
+  left: 50%;
+  top: calc(62px + env(safe-area-inset-top));
+  z-index: 65;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(520px, calc(100vw - 24px));
+  padding: 10px 12px;
+  transform: translateX(-50%);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-left: 4px solid var(--cor-acento);
+  border-radius: 12px;
+  box-shadow: var(--sombra);
+  font-size: 0.9rem;
+}
+
+.update-toast-texto {
+  flex: 1;
+  color: var(--cor-texto);
+}
+
+.update-toast-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 9px;
+  background: var(--cor-acento-fundo);
+  color: var(--cor-texto-contraste);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.update-toast-botao:hover {
+  background: var(--cor-acento-ativo);
+}
+
+.ios-passos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0;
+  padding-left: 20px;
+  color: var(--cor-texto);
+}
+
+.ios-passos li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ios-nota {
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+}

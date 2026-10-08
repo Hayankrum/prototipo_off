@@ -1,0 +1,145 @@
+.itens-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itens-toolbar .campo {
+  margin-bottom: 0;
+}
+
+.itens-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.item-cartao {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+}
+
+.item-concluir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  padding: 0;
+  border: 2px solid var(--cor-borda);
+  border-radius: 50%;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.item-concluir:hover {
+  border-color: var(--cor-acento);
+}
+
+.item-concluir[aria-checked='true'] {
+  background: var(--cor-sucesso);
+  border-color: var(--cor-sucesso);
+  color: #ffffff;
+}
+
+.item-concluir:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.item-corpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-titulo {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.item-descricao {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.item-data {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+}
+
+.item-cartao--concluido .item-titulo {
+  text-decoration: line-through;
+  color: var(--cor-texto-suave);
+}
+
+.item-acoes {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.item-acao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--cor-texto-suave);
+  cursor: pointer;
+}
+
+.item-acao:hover {
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto);
+}
+
+.item-acao--perigo:hover {
+  background: color-mix(in srgb, var(--cor-perigo) 14%, transparent);
+  color: var(--cor-perigo);
+}
+
+.item-acao:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 1px;
+}
+
+.formulario-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.formulario-acoes .btn {
+  flex: 1;
+}
+
+@media (min-width: 480px) {
+  .formulario-acoes .btn {
+    flex: 0 0 auto;
+  }
+}

@@ -1,0 +1,141 @@
+import { useState } from 'react'
+import { Plus, Search } from 'lucide-react'
+import { Button } from '../../shared/ui/Button'
+import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
+import { Modal } from '../../shared/ui/Modal'
+import { useToast } from '../../shared/ui/Toast'
+import type { FiltroItens, Item } from '../../db/schema'
+import * as itemsRepo from './items.repo'
+import type { EntradaItem } from './items.repo'
+import { ItemForm } from './ItemForm'
+import { ItemList } from './ItemList'
+import { useItems } from './useItems'
+import './items.css'
+
+const ROTULOS_FILTRO: Record<FiltroItens, string> = {
+  todos: 'Todos',
+  pendentes: 'Pendentes',
+  concluidos: 'Concluídos',
+}
+
+type Edicao = { modo: 'criar' } | { modo: 'editar'; item: Item }
+
+export function ItemsPage() {
+  const { mostrar } = useToast()
+  const [busca, setBusca] = useState('')
+  const [filtro, setFiltro] = useState<FiltroItens>('todos')
+  const [edicao, setEdicao] = useState<Edicao | null>(null)
+  const [itemExcluir, setItemExcluir] = useState<Item | null>(null)
+
+  const itens = useItems({ busca, filtro })
+  const filtrando = busca.trim() !== '' || filtro !== 'todos'
+
+  async function salvar(entrada: EntradaItem) {
+    if (edicao?.modo === 'editar') {
+      await itemsRepo.atualizar(edicao.item.id, entrada)
+      mostrar('Item atualizado', { tipo: 'sucesso' })
+    } else {
+      await itemsRepo.criar(entrada)
+      mostrar('Item criado', { tipo: 'sucesso' })
+    }
+    setEdicao(null)
+  }
+
+  async function alternar(item: Item) {
+    await itemsRepo.alternarConcluido(item)
+  }
+
+  async function confirmarExclusao() {
+    if (!itemExcluir) return
+    await itemsRepo.excluir(itemExcluir.id)
+    setItemExcluir(null)
+    mostrar('Item excluído', { tipo: 'info' })
+  }
+
+  return (
+    <div className="pagina">
+      <div className="pagina-cabecalho">
+        <div>
+          <h1 className="pagina-titulo">Itens</h1>
+          <p className="pagina-subtitulo">
+            {itens.length === 1 ? '1 item listado' : `${itens.length} itens listados`}
+          </p>
+        </div>
+        <Button onClick={() => setEdicao({ modo: 'criar' })}>
+          <Plus size={18} aria-hidden="true" />
+          Novo item
+        </Button>
+      </div>
+
+      <div className="itens-toolbar">
+        <div className="campo">
+          <label className="campo-label" htmlFor="busca-itens">
+            Buscar itens
+          </label>
+          <div className="busca">
+            <Search className="busca-icone" size={18} aria-hidden="true" />
+            <input
+              id="busca-itens"
+              className="campo-controle busca-input"
+              type="search"
+              placeholder="Título ou descrição"
+              value={busca}
+              onChange={(evento) => setBusca(evento.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="segmentado" role="group" aria-label="Filtrar por situação">
+          {(Object.keys(ROTULOS_FILTRO) as FiltroItens[]).map((valor) => (
+            <button
+              key={valor}
+              type="button"
+              aria-pressed={filtro === valor}
+              onClick={() => setFiltro(valor)}
+            >
+              {ROTULOS_FILTRO[valor]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <ItemList
+        itens={itens}
+        filtrando={filtrando}
+        aoAlternar={(item) => void alternar(item)}
+        aoEditar={(item) => setEdicao({ modo: 'editar', item })}
+        aoExcluir={(item) => setItemExcluir(item)}
+        aoCriar={() => setEdicao({ modo: 'criar' })}
+      />
+
+      <Modal
+        aberto={edicao !== null}
+        titulo={edicao?.modo === 'editar' ? 'Editar item' : 'Novo item'}
+        onFechar={() => setEdicao(null)}
+        largura="estreito"
+      >
+        {edicao ? (
+          <ItemForm
+            item={edicao.modo === 'editar' ? edicao.item : undefined}
+            aoCancelar={() => setEdicao(null)}
+            aoSalvar={salvar}
+          />
+        ) : null}
+      </Modal>
+
+      <ConfirmDialog
+        aberto={itemExcluir !== null}
+        titulo="Excluir item"
+        mensagem={
+          itemExcluir
+            ? `O item "${itemExcluir.titulo}" será removido da lista. Esta ação não pode ser desfeita.`
+            : ''
+        }
+        textoConfirmar="Excluir"
+        perigo
+        aoConfirmar={() => void confirmarExclusao()}
+        aoCancelar={() => setItemExcluir(null)}
+      />
+    </div>
+  )
+}

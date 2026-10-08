@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="sistema">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Meu App</title>
+    <meta
+      name="description"
+      content="Aplicativo 100% offline para organizar seus itens."
+    />
+    <meta name="theme-color" content="#f8fafc" />
+    <meta name="color-scheme" content="light dark" />
+
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Meu App" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <script>
+      (function () {
+        try {
+          var tema = localStorage.getItem('meu-app:tema');
+          if (tema !== 'claro' && tema !== 'escuro' && tema !== 'sistema') {
+            tema = 'sistema';
+          }
+          var raiz = document.documentElement;
+          raiz.setAttribute('data-theme', tema);
+          var escuro =
+            tema === 'escuro' ||
+            (tema === 'sistema' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          raiz.style.colorScheme = escuro ? 'dark' : 'light';
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) {
+            meta.setAttribute('content', escuro ? '#0f172a' : '#f8fafc');
+          }
+        } catch (erro) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Este aplicativo precisa de JavaScript habilitado.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

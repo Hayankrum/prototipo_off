@@ -1,0 +1,173 @@
+import appConfig from '../../app/app.config.json'
+import { CHAVES, limpar as limparConfig, definir as definirConfig } from '../../db/config.repo'
+import { SCHEMA_VERSION, type Item } from '../../db/schema'
+import * as itemsRepo from '../../features/items/items.repo'
+
+export interface ArquivoBackup {
+  app: string
+  schemaVersion: number
+  exportadoEm: string
+  dados: {
+    itens: Item[]
+  }
+}
+
+export type ModoImportacao = 'substituir' | 'mesclar'
+
+export type ResultadoValidacao = { ok: true; backup: ArquivoBackup } | { ok: false; erro: string }
+
+export type ResultadoImportacao = { ok: true; total: number } | { ok: false; erro: string }
+
+function validarItem(bruto: unknown, indice: number): Item | { erro: string } {
+  if (typeof bruto !== 'object' || bruto === null) {
+    return { erro: `Item ${indice + 1} inválido.` }
+  }
+  const item = bruto as Partial<Item>
+  if (typeof item.id !== 'string' || item.id === '') {
+    return { erro: `Item ${indice + 1} sem id.` }
+  }
+  if (typeof item.titulo !== 'string') {
+    return { erro: `Item ${indice + 1} sem título.` }
+  }
+  if (typeof item.criadoEm !== 'number' || typeof item.atualizadoEm !== 'number') {
+    return { erro: `Item ${indice + 1} com datas inválidas.` }
+  }
+  if (typeof item.concluido !== 'boolean') {
+    return { erro: `Item ${indice + 1} com campo "concluido" inválido.` }
+  }
+  const normalizado: Item = {
+    id: item.id,
+    titulo: item.titulo,
+    descricao: typeof item.descricao === 'string' ? item.descricao : '',
+    concluido: item.concluido,
+    criadoEm: item.criadoEm,
+    atualizadoEm: item.atualizadoEm,
+  }
+  if (typeof item.deletadoEm === 'number') normalizado.deletadoEm = item.deletadoEm
+  return normalizado
+}
+
+export function criarBackup(itens: Item[]): ArquivoBackup {
+  return {
+    app: appConfig.id,
+    schemaVersion: SCHEMA_VERSION,
+    exportadoEm: new Date().toISOString(),
+    dados: { itens },
+  }
+}
+
+export function serializar(backup: ArquivoBackup): string {
+  return JSON.stringify(backup, null, 2)
+}
+
+export function validarArquivo(bruto: unknown): ResultadoValidacao {
+  if (typeof bruto !== 'object' || bruto === null || Array.isArray(bruto)) {
+    return { ok: false, erro: 'O arquivo não contém um backup válido.' }
+  }
+  const objeto = bruto as Partial<ArquivoBackup>
+  if (typeof objeto.app !== 'string' || objeto.app === '') {
+    return { ok: false, erro: 'O arquivo não identifica o app de origem.' }
+  }
+  if (objeto.app !== appConfig.id) {
+    return { ok: false, erro: `Backup de outro app ("${objeto.app}").` }
+  }
+  if (typeof objeto.schemaVersion !== 'number' || !Number.isInteger(objeto.schemaVersion)) {
+    return { ok: false, erro: 'Versão do schema ausente ou inválida.' }
+  }
+  if (objeto.schemaVersion > SCHEMA_VERSION) {
+    return {
+      ok: false,
+      erro: `Este backup usa uma versão mais nova do schema (${objeto.schemaVersion}). Atualize o app.`,
+    }
+  }
+  if (typeof objeto.exportadoEm !== 'string' || Number.isNaN(Date.parse(objeto.exportadoEm))) {
+    return { ok: false, erro: 'Data de exportação inválida.' }
+  }
+  const dados = objeto.dados as Partial<ArquivoBackup['dados']> | undefined
+  if (typeof dados !== 'object' || dados === null || !Array.isArray(dados.itens)) {
+    return { ok: false, erro: 'O backup não contém a lista de itens.' }
+  }
+  const itens: Item[] = []
+  for (let i = 0; i < dados.itens.length; i += 1) {
+    const validado = validarItem(dados.itens[i], i)
+    if ('erro' in validado) return { ok: false, erro: validado.erro }
+    itens.push(validado)
+  }
+  return {
+    ok: true,
+    backup: {
+      app: objeto.app,
+      schemaVersion: objeto.schemaVersion,
+      exportadoEm: objeto.exportadoEm,
+      dados: { itens },
+    },
+  }
+}
+
+function nomeArquivo(exportadoEm: string): string {
+  const data = exportadoEm.slice(0, 10)
+  return `${appConfig.id}-backup-${data}.json`
+}
+
+function baixarArquivo(nome: string, conteudo: string): void {
+  const blob = new Blob([conteudo], { type: 'application/json;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = nome
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+export async function exportar(): Promise<number> {
+  const itens = await itemsRepo.listarParaBackup()
+  const backup = criarBackup(itens)
+  baixarArquivo(nomeArquivo(backup.exportadoEm), serializar(backup))
+  await definirConfig(CHAVES.ultimoBackupEm, Date.now())
+  return itens.length
+}
+
+export async function importar(file: File, modo: ModoImportacao): Promise<ResultadoImportacao> {
+  let texto: string
+  try {
+    texto = await file.text()
+  } catch {
+    return { ok: false, erro: 'Não foi possível ler o arquivo.' }
+  }
+  let bruto: unknown
+  try {
+    bruto = JSON.parse(texto)
+  } catch {
+    return { ok: false, erro: 'O arquivo não é um JSON válido.' }
+  }
+  const validacao = validarArquivo(bruto)
+  if (!validacao.ok) return validacao
+  const itens = validacao.backup.dados.itens
+  if (modo === 'substituir') {
+    await itemsRepo.substituirTodos(itens)
+  } else {
+    await itemsRepo.mesclar(itens)
+  }
+  return { ok: true, total: itens.length }
+}
+
+export async function lerInfoBackup(file: File): Promise<ResultadoValidacao> {
+  let texto: string
+  try {
+    texto = await file.text()
+  } catch {
+    return { ok: false, erro: 'Não foi possível ler o arquivo.' }
+  }
+  try {
+    return validarArquivo(JSON.parse(texto))
+  } catch {
+    return { ok: false, erro: 'O arquivo não é um JSON válido.' }
+  }
+}
+
+export async function apagarTudo(): Promise<void> {
+  await itemsRepo.limparTodos()
+  await limparConfig()
+}

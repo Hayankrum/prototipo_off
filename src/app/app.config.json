@@ -1,0 +1,11 @@
+{
+  "id": "meu-app",
+  "name": "Meu App",
+  "shortName": "Meu App",
+  "description": "Aplicativo 100% offline para organizar seus itens.",
+  "dbName": "MeuAppDB",
+  "themeColor": "#0f172a",
+  "backgroundColor": "#f8fafc",
+  "metaThemeColorClaro": "#f8fafc",
+  "metaThemeColorEscuro": "#0f172a"
+}
