@@ -1,0 +1,78 @@
+import { NavLink } from 'react-router-dom'
+import { House, Info, ListChecks, Moon, Settings, Sun } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import appConfig from '../app.config.json'
+import { useSettings } from '../../features/settings/useSettings'
+
+interface LinkNavegacao {
+  to: string
+  rotulo: string
+  icone: LucideIcon
+  exato?: boolean
+}
+
+const LINKS: LinkNavegacao[] = [
+  { to: '/', rotulo: 'Início', icone: House, exato: true },
+  { to: '/itens', rotulo: 'Itens', icone: ListChecks },
+  { to: '/sobre', rotulo: 'Sobre', icone: Info },
+  { to: '/config', rotulo: 'Ajustes', icone: Settings },
+]
+
+function estaEscuro(): boolean {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
+export function TopNav() {
+  const { tema, definirTema } = useSettings()
+
+  const escuro =
+    tema === 'escuro' || (tema === 'sistema' && estaEscuro())
+
+  function alternarTema() {
+    void definirTema(escuro ? 'claro' : 'escuro')
+  }
+
+  return (
+    <nav className="top-nav" aria-label="Navegação principal">
+      <div className="top-nav-interno">
+        <NavLink to="/" className="top-nav-marca" title={appConfig.name}>
+          <img
+            src={`${import.meta.env.BASE_URL}icons/icon.svg`}
+            alt=""
+            aria-hidden="true"
+          />
+          <span>{appConfig.name}</span>
+        </NavLink>
+
+        <ul className="top-nav-lista">
+          {LINKS.map(({ to, rotulo, icone: Icone, exato }) => (
+            <li key={to}>
+              <NavLink
+                to={to}
+                end={exato ?? false}
+                className={({ isActive }) =>
+                  `top-nav-link${isActive ? ' top-nav-link--ativo' : ''}`
+                }
+              >
+                <Icone size={18} aria-hidden="true" />
+                <span>{rotulo}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+
+        <div className="top-nav-acoes">
+          <button
+            type="button"
+            className="top-nav-botao"
+            onClick={alternarTema}
+            aria-label={escuro ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+            title={escuro ? 'Tema claro' : 'Tema escuro'}
+          >
+            {escuro ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+          </button>
+        </div>
+      </div>
+    </nav>
+  )
+}

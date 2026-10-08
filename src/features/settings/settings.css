@@ -1,34 +1,48 @@
-.tema-campo {
-  padding: 0;
-  margin: 0;
-  border: none;
+.ajustes-linha {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: stretch;
 }
 
-.tema-campo legend {
-  padding: 0;
-  margin-bottom: 8px;
+.ajustes-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ajustes-rotulo {
+  color: var(--cor-texto);
+  font-size: 0.875rem;
+}
+
+.ajustes-descricao {
+  color: var(--cor-texto-terciario);
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 
 .tema-opcoes {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .tema-opcao {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px 12px;
-  border: 1px solid var(--cor-borda);
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
   background: var(--cor-superficie-2);
   color: var(--cor-texto-suave);
-  font-size: 0.9rem;
-  font-weight: 600;
   cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .tema-opcao:hover {
@@ -36,10 +50,9 @@
 }
 
 .tema-opcao--ativo {
-  background: var(--cor-superficie);
-  border-color: var(--cor-acento);
-  color: var(--cor-acento);
-  box-shadow: var(--sombra);
+  background: var(--cor-acento-fundo);
+  border-color: transparent;
+  color: var(--cor-texto-contraste);
 }
 
 .tema-opcao:has(input:focus-visible) {
@@ -50,12 +63,7 @@
 .ajustes-acoes {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.ajustes-botao {
-  margin-top: 12px;
+  gap: 8px;
 }
 
 .armazenamento-linha {
@@ -70,7 +78,7 @@
   margin-bottom: 10px;
   overflow: hidden;
   background: var(--cor-superficie-2);
-  border: 1px solid var(--cor-borda);
+  border: none;
   border-radius: 999px;
 }
 
@@ -82,5 +90,24 @@
 }
 
 .cartao--perigo {
-  border-color: color-mix(in srgb, var(--cor-perigo) 45%, var(--cor-borda));
+  border-color: color-mix(in srgb, var(--cor-perigo) 35%, var(--cor-borda));
+}
+
+@media (min-width: 560px) {
+  .ajustes-linha {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .ajustes-info {
+    min-width: 0;
+  }
+
+  .tema-opcoes,
+  .ajustes-acoes {
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
 }

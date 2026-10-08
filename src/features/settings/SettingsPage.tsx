@@ -7,6 +7,7 @@ import {
   Monitor,
   Moon,
   RefreshCw,
+  ShieldCheck,
   Sun,
   Trash2,
 } from 'lucide-react'
@@ -46,6 +47,12 @@ const OPCOES_TEMA: OpcaoTema[] = [
   { valor: 'escuro', rotulo: 'Escuro', icone: Moon },
   { valor: 'sistema', rotulo: 'Sistema', icone: Monitor },
 ]
+
+const DESCRICOES_TEMA: Record<Tema, string> = {
+  claro: 'Tema claro ativo',
+  escuro: 'Tema escuro ativo',
+  sistema: 'Segue o tema do sistema',
+}
 
 export function SettingsPage() {
   const { mostrar } = useToast()
@@ -143,13 +150,17 @@ export function SettingsPage() {
         <h2 className="cartao-titulo" id="titulo-tema">
           Aparência
         </h2>
-        <fieldset className="tema-campo">
-          <legend className="campo-label">Tema</legend>
-          <div className="tema-opcoes">
+        <div className="ajustes-linha">
+          <div className="ajustes-info">
+            <p className="ajustes-rotulo">Tema</p>
+            <p className="ajustes-descricao">{DESCRICOES_TEMA[tema]}</p>
+          </div>
+          <div className="tema-opcoes" role="radiogroup" aria-label="Tema">
             {OPCOES_TEMA.map(({ valor, rotulo, icone: Icone }) => (
               <label
                 key={valor}
                 className={`tema-opcao${tema === valor ? ' tema-opcao--ativo' : ''}`}
+                title={rotulo}
               >
                 <input
                   className="sr-only"
@@ -160,27 +171,37 @@ export function SettingsPage() {
                   onChange={() => void definirTema(valor)}
                 />
                 <Icone size={18} aria-hidden="true" />
-                <span>{rotulo}</span>
+                <span className="sr-only">{rotulo}</span>
               </label>
             ))}
           </div>
-        </fieldset>
+        </div>
       </section>
 
       {canInstall ? (
         <section className="cartao" aria-labelledby="titulo-instalar">
           <h2 className="cartao-titulo" id="titulo-instalar">
-            Instalar app
+            Aplicativo
           </h2>
-          <p className="pagina-subtitulo">
-            {isIOS
-              ? 'No iPhone ou iPad, você adiciona o app pela tela de início usando o Safari.'
-              : 'Adicione o app à sua tela de início para abrir como um aplicativo.'}
-          </p>
-          <Button className="ajustes-botao" onClick={() => void install()}>
-            <Download size={18} aria-hidden="true" />
-            Instalar agora
-          </Button>
+          <div className="ajustes-linha">
+            <div className="ajustes-info">
+              <p className="ajustes-rotulo">Instalar PWA</p>
+              <p className="ajustes-descricao">
+                {isIOS
+                  ? 'No iPhone ou iPad, adicione pela tela de início usando o Safari.'
+                  : 'Adicione à tela inicial para acesso rápido.'}
+              </p>
+            </div>
+            <Button
+              variante="secundario"
+              tamanho="icone"
+              aria-label="Instalar aplicativo"
+              title="Instalar aplicativo"
+              onClick={() => void install()}
+            >
+              <Download size={18} aria-hidden="true" />
+            </Button>
+          </div>
         </section>
       ) : null}
 
@@ -188,28 +209,43 @@ export function SettingsPage() {
         <h2 className="cartao-titulo" id="titulo-dados">
           Backup dos dados
         </h2>
-        <p className="pagina-subtitulo">
-          {ultimoBackupEm === null
-            ? 'Nenhum backup exportado ainda.'
-            : `Último backup em ${formatarDataHora(ultimoBackupEm)}.`}
-        </p>
-        <div className="ajustes-acoes">
-          <Button variante="secundario" onClick={() => void exportarDados()}>
-            <FileDown size={18} aria-hidden="true" />
-            Exportar JSON
-          </Button>
-          <Button variante="secundario" onClick={() => arquivoRef.current?.click()}>
-            <FileUp size={18} aria-hidden="true" />
-            Importar JSON
-          </Button>
-          <input
-            ref={arquivoRef}
-            className="sr-only"
-            type="file"
-            accept="application/json,.json"
-            aria-label="Selecionar arquivo de backup JSON"
-            onChange={(evento) => void aoEscolherArquivo(evento)}
-          />
+        <div className="ajustes-linha">
+          <div className="ajustes-info">
+            <p className="ajustes-rotulo">Exportar e importar</p>
+            <p className="ajustes-descricao">
+              {ultimoBackupEm === null
+                ? 'Nenhum backup exportado ainda.'
+                : `Último backup em ${formatarDataHora(ultimoBackupEm)}.`}
+            </p>
+          </div>
+          <div className="ajustes-acoes">
+            <Button
+              variante="secundario"
+              tamanho="icone"
+              aria-label="Exportar JSON"
+              title="Exportar JSON"
+              onClick={() => void exportarDados()}
+            >
+              <FileDown size={18} aria-hidden="true" />
+            </Button>
+            <Button
+              variante="secundario"
+              tamanho="icone"
+              aria-label="Importar JSON"
+              title="Importar JSON"
+              onClick={() => arquivoRef.current?.click()}
+            >
+              <FileUp size={18} aria-hidden="true" />
+            </Button>
+            <input
+              ref={arquivoRef}
+              className="sr-only"
+              type="file"
+              accept="application/json,.json"
+              aria-label="Selecionar arquivo de backup JSON"
+              onChange={(evento) => void aoEscolherArquivo(evento)}
+            />
+          </div>
         </div>
       </section>
 
@@ -243,13 +279,24 @@ export function SettingsPage() {
               <strong>{armazenamento.persistente ? 'garantido' : 'não garantido'}</strong>
             </p>
             <div className="ajustes-acoes">
-              <Button variante="secundario" tamanho="pequeno" onClick={() => void carregarArmazenamento()}>
-                <RefreshCw size={16} aria-hidden="true" />
-                Recalcular
+              <Button
+                variante="secundario"
+                tamanho="icone"
+                aria-label="Recalcular armazenamento"
+                title="Recalcular"
+                onClick={() => void carregarArmazenamento()}
+              >
+                <RefreshCw size={18} aria-hidden="true" />
               </Button>
               {!armazenamento.persistente ? (
-                <Button variante="secundario" tamanho="pequeno" onClick={() => void solicitarEspaco()}>
-                  Solicitar espaço permanente
+                <Button
+                  variante="secundario"
+                  tamanho="icone"
+                  aria-label="Solicitar espaço permanente"
+                  title="Solicitar espaço permanente"
+                  onClick={() => void solicitarEspaco()}
+                >
+                  <ShieldCheck size={18} aria-hidden="true" />
                 </Button>
               ) : null}
             </div>
@@ -259,15 +306,20 @@ export function SettingsPage() {
 
       <section className="cartao cartao--perigo" aria-labelledby="titulo-apagar">
         <h2 className="cartao-titulo" id="titulo-apagar">
-          Apagar todos os dados
+          Conta e dados
         </h2>
-        <p className="pagina-subtitulo">
-          Remove itens e ajustes salvos neste app. Exporte um backup antes.
-        </p>
-        <Button variante="perigo" className="ajustes-botao" onClick={() => setEtapaLimpar(1)}>
-          <Trash2 size={18} aria-hidden="true" />
-          Apagar tudo
-        </Button>
+        <div className="ajustes-linha">
+          <div className="ajustes-info">
+            <p className="ajustes-rotulo">Apagar todos os dados</p>
+            <p className="ajustes-descricao">
+              Remove itens e ajustes salvos neste app. Exporte um backup antes.
+            </p>
+          </div>
+          <Button variante="perigo" tamanho="pequeno" onClick={() => setEtapaLimpar(1)}>
+            <Trash2 size={16} aria-hidden="true" />
+            Apagar tudo
+          </Button>
+        </div>
       </section>
 
       <Modal

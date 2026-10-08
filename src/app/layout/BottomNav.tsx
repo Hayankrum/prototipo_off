@@ -25,6 +25,7 @@ export function BottomNav() {
             <NavLink
               to={to}
               end={exato ?? false}
+              aria-label={rotulo}
               className={({ isActive }) =>
                 `bottom-nav-link${isActive ? ' bottom-nav-link--ativo' : ''}`
               }

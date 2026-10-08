@@ -11,7 +11,7 @@
 .itens-lista {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -21,11 +21,10 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px;
+  padding: 16px;
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio);
-  box-shadow: var(--sombra);
 }
 
 .item-concluir {
@@ -37,7 +36,7 @@
   flex-shrink: 0;
   margin-top: 2px;
   padding: 0;
-  border: 2px solid var(--cor-borda);
+  border: 2px solid var(--cor-borda-forte);
   border-radius: 50%;
   background: transparent;
   color: transparent;
@@ -84,7 +83,7 @@
 .item-data {
   margin-top: 6px;
   font-size: 0.75rem;
-  color: var(--cor-texto-suave);
+  color: var(--cor-texto-terciario);
 }
 
 .item-cartao--concluido .item-titulo {
@@ -106,9 +105,9 @@
   height: 36px;
   padding: 0;
   border: none;
-  border-radius: 9px;
+  border-radius: 8px;
   background: transparent;
-  color: var(--cor-texto-suave);
+  color: var(--cor-texto-terciario);
   cursor: pointer;
 }
 

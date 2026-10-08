@@ -4,8 +4,8 @@
   "shortName": "Meu App",
   "description": "Aplicativo 100% offline para organizar seus itens.",
   "dbName": "MeuAppDB",
-  "themeColor": "#0f172a",
-  "backgroundColor": "#f8fafc",
-  "metaThemeColorClaro": "#f8fafc",
-  "metaThemeColorEscuro": "#0f172a"
+  "themeColor": "#09090b",
+  "backgroundColor": "#ffffff",
+  "metaThemeColorClaro": "#ffffff",
+  "metaThemeColorEscuro": "#09090b"
 }

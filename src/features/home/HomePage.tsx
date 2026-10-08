@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { AlertTriangle, ArrowRight, CircleCheck, CircleDashed, ListTodo } from 'lucide-react'
+import { AlertTriangle, CircleCheck, CircleDashed, ListTodo } from 'lucide-react'
+import appConfig from '../../app/app.config.json'
 import { useItemsStats } from '../items/useItems'
 import { useSettings } from '../settings/useSettings'
-import { diasDesde, formatarData } from '../../shared/lib/date'
+import { diasDesde } from '../../shared/lib/date'
 import './home.css'
 
 export function HomePage() {
@@ -14,31 +15,42 @@ export function HomePage() {
 
   return (
     <div className="pagina">
-      <div className="pagina-cabecalho">
-        <div>
-          <h1 className="pagina-titulo">Início</h1>
-          <p className="pagina-subtitulo">Resumo rápido do que está na sua lista.</p>
+      <section className="hero" aria-labelledby="hero-titulo">
+        <div className="hero-marca" aria-hidden="true">
+          <img src={`${import.meta.env.BASE_URL}icons/icon.svg`} alt="" />
         </div>
-      </div>
+
+        <div className="hero-conteudo">
+          <h1 className="hero-titulo" id="hero-titulo">
+            <span className="hero-titulo-linha">Bem-vindo</span>
+            <span className="hero-titulo-nome">{appConfig.name}</span>
+          </h1>
+
+          <p className="hero-texto">
+            Um app de itens que funciona <strong>100% offline</strong>. Tudo fica salvo apenas
+            neste dispositivo, sem contas e sem servidor.
+          </p>
+        </div>
+      </section>
 
       <section className="resumo-grade" aria-label="Resumo dos itens">
         <div className="cartao resumo-cartao">
           <span className="resumo-icone" aria-hidden="true">
-            <ListTodo size={20} />
+            <ListTodo size={18} />
           </span>
           <p className="resumo-valor">{total}</p>
-          <p className="resumo-rotulo">Total de itens</p>
+          <p className="resumo-rotulo">Total</p>
         </div>
         <div className="cartao resumo-cartao">
           <span className="resumo-icone resumo-icone--pendente" aria-hidden="true">
-            <CircleDashed size={20} />
+            <CircleDashed size={18} />
           </span>
           <p className="resumo-valor">{pendentes}</p>
           <p className="resumo-rotulo">Pendentes</p>
         </div>
         <div className="cartao resumo-cartao">
           <span className="resumo-icone resumo-icone--concluido" aria-hidden="true">
-            <CircleCheck size={20} />
+            <CircleCheck size={18} />
           </span>
           <p className="resumo-valor">{concluidos}</p>
           <p className="resumo-rotulo">Concluídos</p>
@@ -46,8 +58,8 @@ export function HomePage() {
       </section>
 
       {avisoBackup ? (
-        <div className="aviso" role="status">
-          <AlertTriangle size={18} aria-hidden="true" />
+        <div className="aviso aviso--compacto" role="status">
+          <AlertTriangle size={16} aria-hidden="true" />
           <span>
             {diasSemBackup === null
               ? 'Você ainda não exportou seus dados. Faça um backup em '
@@ -56,23 +68,6 @@ export function HomePage() {
           </span>
         </div>
       ) : null}
-
-      <section className="cartao atalho-cartao" aria-labelledby="atalho-titulo">
-        <div className="atalho-texto">
-          <h2 className="cartao-titulo" id="atalho-titulo">
-            Gerenciar itens
-          </h2>
-          <p className="pagina-subtitulo">
-            {ultimoBackupEm !== null && diasSemBackup !== null && diasSemBackup <= 30
-              ? `Último backup em ${formatarData(ultimoBackupEm)}.`
-              : 'Crie, edite, conclua e exclua itens.'}
-          </p>
-        </div>
-        <Link className="atalho-link" to="/itens">
-          Abrir itens
-          <ArrowRight size={18} aria-hidden="true" />
-        </Link>
-      </section>
     </div>
   )
 }

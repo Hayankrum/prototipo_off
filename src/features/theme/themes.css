@@ -1,68 +1,97 @@
+/* Paleta zinc — espelho visual do next_base (globals.css) */
+
 :root {
   color-scheme: light;
 
-  --cor-fundo: #f8fafc;
-  --cor-superficie: #ffffff;
-  --cor-superficie-2: #f1f5f9;
-  --cor-texto: #0f172a;
-  --cor-texto-suave: #475569;
-  --cor-borda: #e2e8f0;
-  --cor-acento: #1d4ed8;
-  --cor-acento-fundo: #2563eb;
-  --cor-acento-ativo: #1d4ed8;
+  --cor-fundo: #ffffff;
+  --cor-superficie: #f4f4f5;
+  --cor-superficie-2: #e4e4e7;
+  --cor-superficie-3: #d4d4d8;
+  --cor-campo: #ffffff;
+  --cor-campo-borda: #d4d4d8;
+  --cor-texto: #18181b;
+  --cor-texto-suave: #52525b;
+  --cor-texto-terciario: #71717a;
+  --cor-borda: #e4e4e7;
+  --cor-borda-forte: #d4d4d8;
+  --cor-acento: #18181b;
+  --cor-acento-fundo: #18181b;
+  --cor-acento-ativo: #27272a;
   --cor-texto-contraste: #ffffff;
-  --cor-foco: #2563eb;
+  --cor-foco: #18181b;
   --cor-perigo: #dc2626;
+  --cor-perigo-fundo: #fee2e2;
   --cor-sucesso: #16a34a;
   --cor-aviso-fundo: #fffbeb;
   --cor-aviso-borda: #fcd34d;
   --cor-aviso-texto: #92400e;
-  --sombra: 0 1px 2px rgb(15 23 42 / 0.06), 0 6px 16px rgb(15 23 42 / 0.06);
-  --raio: 14px;
+  --cor-nav: color-mix(in srgb, #e4e4e7 85%, transparent);
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.04), 0 2px 10px rgb(0 0 0 / 0.06);
+  --sombra-nav: 0 2px 10px rgb(0 0 0 / 0.1);
+  --raio: 8px;
+  --watermark-opacity: 0.06;
 }
 
 [data-theme='escuro'] {
   color-scheme: dark;
 
-  --cor-fundo: #0f172a;
-  --cor-superficie: #1e293b;
-  --cor-superficie-2: #273449;
-  --cor-texto: #f1f5f9;
-  --cor-texto-suave: #a3b0c2;
-  --cor-borda: #334155;
-  --cor-acento: #60a5fa;
-  --cor-acento-fundo: #3b82f6;
-  --cor-acento-ativo: #60a5fa;
-  --cor-texto-contraste: #0b1220;
-  --cor-foco: #93c5fd;
+  --cor-fundo: #09090b;
+  --cor-superficie: #18181b;
+  --cor-superficie-2: #27272a;
+  --cor-superficie-3: #3f3f46;
+  --cor-campo: #18181b;
+  --cor-campo-borda: #3f3f46;
+  --cor-texto: #fafafa;
+  --cor-texto-suave: #a1a1aa;
+  --cor-texto-terciario: #71717a;
+  --cor-borda: #27272a;
+  --cor-borda-forte: #3f3f46;
+  --cor-acento: #fafafa;
+  --cor-acento-fundo: #fafafa;
+  --cor-acento-ativo: #e4e4e7;
+  --cor-texto-contraste: #09090b;
+  --cor-foco: #fafafa;
   --cor-perigo: #f87171;
+  --cor-perigo-fundo: #450a0a;
   --cor-sucesso: #4ade80;
   --cor-aviso-fundo: #2b2113;
   --cor-aviso-borda: #78350f;
   --cor-aviso-texto: #fcd34d;
-  --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 16px rgb(0 0 0 / 0.35);
+  --cor-nav: color-mix(in srgb, #27272a 85%, transparent);
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 10px rgb(0 0 0 / 0.35);
+  --sombra-nav: 0 2px 10px rgb(0 0 0 / 0.4);
+  --watermark-opacity: 0.08;
 }
 
 @media (prefers-color-scheme: dark) {
   [data-theme='sistema'] {
     color-scheme: dark;
 
-    --cor-fundo: #0f172a;
-    --cor-superficie: #1e293b;
-    --cor-superficie-2: #273449;
-    --cor-texto: #f1f5f9;
-    --cor-texto-suave: #a3b0c2;
-    --cor-borda: #334155;
-    --cor-acento: #60a5fa;
-    --cor-acento-fundo: #3b82f6;
-    --cor-acento-ativo: #60a5fa;
-    --cor-texto-contraste: #0b1220;
-    --cor-foco: #93c5fd;
+    --cor-fundo: #09090b;
+    --cor-superficie: #18181b;
+    --cor-superficie-2: #27272a;
+    --cor-superficie-3: #3f3f46;
+    --cor-campo: #18181b;
+    --cor-campo-borda: #3f3f46;
+    --cor-texto: #fafafa;
+    --cor-texto-suave: #a1a1aa;
+    --cor-texto-terciario: #71717a;
+    --cor-borda: #27272a;
+    --cor-borda-forte: #3f3f46;
+    --cor-acento: #fafafa;
+    --cor-acento-fundo: #fafafa;
+    --cor-acento-ativo: #e4e4e7;
+    --cor-texto-contraste: #09090b;
+    --cor-foco: #fafafa;
     --cor-perigo: #f87171;
+    --cor-perigo-fundo: #450a0a;
     --cor-sucesso: #4ade80;
     --cor-aviso-fundo: #2b2113;
     --cor-aviso-borda: #78350f;
     --cor-aviso-texto: #fcd34d;
-    --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 16px rgb(0 0 0 / 0.35);
+    --cor-nav: color-mix(in srgb, #27272a 85%, transparent);
+    --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 10px rgb(0 0 0 / 0.35);
+    --sombra-nav: 0 2px 10px rgb(0 0 0 / 0.4);
+    --watermark-opacity: 0.08;
   }
 }

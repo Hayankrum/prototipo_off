@@ -61,8 +61,8 @@ export function ItemsPage() {
             {itens.length === 1 ? '1 item listado' : `${itens.length} itens listados`}
           </p>
         </div>
-        <Button onClick={() => setEdicao({ modo: 'criar' })}>
-          <Plus size={18} aria-hidden="true" />
+        <Button tamanho="pequeno" onClick={() => setEdicao({ modo: 'criar' })}>
+          <Plus size={16} aria-hidden="true" />
           Novo item
         </Button>
       </div>

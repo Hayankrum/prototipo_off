@@ -51,11 +51,11 @@ Exceções (para manter antes do React carregar):
 
 ```
 src/
-├── app/            App, router (createHashRouter), providers, AppShell, BottomNav
+├── app/            App, router (createHashRouter), providers, AppShell, TopNav, BottomNav
 ├── features/
 │   ├── home/       resumo + atalho + aviso de backup
 │   ├── items/      ItemsPage, ItemForm, ItemList, useItems, items.repo.ts
-│   ├── about/      Sobre
+│   ├── about/      Sobre + ShareSection (QR gerado localmente, sem rede)
 │   ├── settings/   Configurações + useSettings
 │   ├── theme/      ThemeProvider + themes.css (variáveis + data-theme)
 │   └── pwa/        useInstallPrompt, InstallBanner, IOSInstallModal, UpdateToast

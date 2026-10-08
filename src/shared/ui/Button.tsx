@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react'
 
 type Variante = 'primario' | 'secundario' | 'perigo' | 'fantasma'
-type Tamanho = 'padrao' | 'pequeno'
+type Tamanho = 'padrao' | 'pequeno' | 'icone'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variante?: Variante

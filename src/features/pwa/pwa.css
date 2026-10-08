@@ -1,7 +1,7 @@
 .install-banner {
   position: fixed;
   left: 50%;
-  bottom: calc(78px + env(safe-area-inset-bottom));
+  bottom: calc(84px + env(safe-area-inset-bottom));
   z-index: 55;
   display: flex;
   align-items: center;
@@ -10,8 +10,8 @@
   padding: 12px;
   transform: translateX(-50%);
   background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-  border-radius: 14px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: 12px;
   box-shadow: var(--sombra);
 }
 
@@ -52,7 +52,7 @@
 .update-toast {
   position: fixed;
   left: 50%;
-  top: calc(62px + env(safe-area-inset-top));
+  top: calc(16px + env(safe-area-inset-top));
   z-index: 65;
   display: flex;
   align-items: center;
@@ -61,7 +61,7 @@
   padding: 10px 12px;
   transform: translateX(-50%);
   background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--cor-borda-forte);
   border-left: 4px solid var(--cor-acento);
   border-radius: 12px;
   box-shadow: var(--sombra);
@@ -109,4 +109,14 @@
 .ios-nota {
   font-size: 0.85rem;
   color: var(--cor-texto-suave);
+}
+
+@media (min-width: 768px) {
+  .install-banner {
+    bottom: 24px;
+  }
+
+  .update-toast {
+    top: calc(76px + env(safe-area-inset-top));
+  }
 }

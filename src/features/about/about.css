@@ -1,3 +1,50 @@
+.sobre-texto {
+  color: var(--cor-texto-suave);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.sobre-versao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.sobre-versao-ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cor-sucesso);
+}
+
+.sobre-versao-rotulo {
+  font-size: 0.75rem;
+  color: var(--cor-texto-terciario);
+}
+
+.sobre-funcionalidades {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--cor-texto-suave);
+  font-size: 0.875rem;
+}
+
+.sobre-funcionalidades li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sobre-funcionalidades svg {
+  flex-shrink: 0;
+  color: var(--cor-texto);
+}
+
 .sobre-lista {
   display: flex;
   flex-direction: column;
@@ -15,7 +62,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--cor-texto-suave);
+  color: var(--cor-texto-terciario);
 }
 
 .sobre-item dd {
@@ -30,21 +77,107 @@
   color: var(--cor-texto);
 }
 
-.sobre-texto {
-  color: var(--cor-texto-suave);
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
 .sobre-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   margin-top: 14px;
-  font-weight: 600;
+  color: var(--cor-texto);
+  font-size: 0.875rem;
+  font-weight: 500;
   text-decoration: none;
 }
 
 .sobre-link:hover {
   text-decoration: underline;
+}
+
+.sobre-passos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--cor-texto-suave);
+  font-size: 0.875rem;
+}
+
+.sobre-passo-titulo {
+  margin-bottom: 2px;
+  color: var(--cor-texto);
+  font-weight: 500;
+}
+
+.sobre-passo-texto {
+  font-size: 0.8125rem;
+}
+
+.sobre-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sobre-tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-suave);
+  font-size: 0.75rem;
+}
+
+.sobre-botao {
+  margin-top: 16px;
+}
+
+.compartilhar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.compartilhar-qr {
+  padding: 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid var(--cor-borda-forte);
+  line-height: 0;
+}
+
+.compartilhar-qr svg {
+  display: block;
+}
+
+.compartilhar-link {
+  width: 100%;
+}
+
+.compartilhar-rotulo {
+  margin-bottom: 4px;
+  color: var(--cor-texto-terciario);
+  font-size: 0.75rem;
+}
+
+.compartilhar-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compartilhar-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--cor-campo-borda);
+  border-radius: 8px;
+  background: var(--cor-campo);
+  color: var(--cor-texto);
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+}
+
+.compartilhar-botao {
+  width: 100%;
+  margin-top: 10px;
 }

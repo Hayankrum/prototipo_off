@@ -1,9 +1,9 @@
-import { Link, Outlet } from 'react-router-dom'
-import appConfig from '../app.config.json'
+import { Outlet } from 'react-router-dom'
 import { InstallBanner } from '../../features/pwa/InstallBanner'
 import { IOSInstallModal } from '../../features/pwa/IOSInstallModal'
 import { UpdateToast } from '../../features/pwa/UpdateToast'
 import { BottomNav } from './BottomNav'
+import { TopNav } from './TopNav'
 import './shell.css'
 
 export function AppShell() {
@@ -13,13 +13,7 @@ export function AppShell() {
         Pular para o conteúdo
       </a>
 
-      <header className="shell-cabecalho">
-        <div className="shell-cabecalho-interno">
-          <Link to="/" className="shell-marca">
-            {appConfig.name}
-          </Link>
-        </div>
-      </header>
+      <TopNav />
 
       <main className="shell-conteudo" id="conteudo" tabIndex={-1}>
         <Outlet />
