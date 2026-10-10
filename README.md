@@ -62,6 +62,22 @@ Ver [`.env.example`](./.env.example): `DATABASE_URL`, `AUTH_SECRET` (≥32 chars
 `localhost:5173` como `trustedOrigins` somente em `NODE_ENV=development`),
 `PORT`, `NODE_ENV`. Validadas com Zod em `server/env.ts`.
 
+## Segurança
+
+- **Headers** (todos os caminhos, `server/app.ts`): CSP estrita
+  (`script-src 'self'` — o anti-flash de tema é `public/theme-init.js` externo;
+  `style-src` aceita inline só por atributos `style`), `X-Content-Type-Options`,
+  `X-Frame-Options: DENY` + `frame-ancestors 'none'`, `Referrer-Policy:
+  no-referrer`, `Permissions-Policy` (câmera/mic/geolocalização/pagamento
+  desligados), COOP/CORP `same-origin`. Com `APP_URL` https, soma HSTS +
+  `upgrade-insecure-requests` (coloque o app atrás de um proxy TLS em produção).
+- **Corpos**: `bodyLimit` de 2 MB em `/api/*` (413 acima disso).
+- **Sessão**: cookie HttpOnly + SameSite do better-auth (nada em
+  localStorage); better-auth exige `Origin` em POST (CSRF); rate-limit
+  ativo em produção (120 req/min por IP).
+- **Dados**: Zod em todo payload (`shared/`), Prisma parametrizado, segredos
+  só no `.env` (o build do cliente não vê `AUTH_SECRET`/`DATABASE_URL`).
+
 ## Estrutura
 
 ```

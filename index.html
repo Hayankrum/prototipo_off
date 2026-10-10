@@ -20,27 +20,7 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <script>
-      (function () {
-        try {
-          var tema = localStorage.getItem('meu-app:tema');
-          if (tema !== 'claro' && tema !== 'escuro' && tema !== 'sistema') {
-            tema = 'sistema';
-          }
-          var raiz = document.documentElement;
-          raiz.setAttribute('data-theme', tema);
-          var escuro =
-            tema === 'escuro' ||
-            (tema === 'sistema' &&
-              window.matchMedia('(prefers-color-scheme: dark)').matches);
-          raiz.style.colorScheme = escuro ? 'dark' : 'light';
-          var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) {
-            meta.setAttribute('content', escuro ? '#09090b' : '#ffffff');
-          }
-        } catch (erro) {}
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>

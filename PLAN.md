@@ -12,10 +12,7 @@ mudanças de schema do Dexie podem recriar o banco (sem `.upgrade()`).
 | D | Dev e build unificados (um processo em produção) | ✅ |
 | E | SyncEngine no cliente (push/pull em segundo plano) | ✅ |
 | F | Conta e estado na interface | ✅ |
-| G | PWA e segurança | pendente |
-
-Teste de aceitação completo (dois navegadores, offline, idempotência, PWA em
-modo avião) fica para o final, depois da Etapa G.
+| G | PWA e segurança | ✅ |
 
 ## Notas pendentes
 
@@ -30,6 +27,18 @@ modo avião) fica para o final, depois da Etapa G.
   troca de conta: `ultimoUsuarioId` em `config` — se o login for de outra
   conta, itens+outbox são apagados e o cursor volta a `0` (não mistura
   contas). Saída limpa só a sessão local; os dados ficam no aparelho.
+- **Etapa G (feita)**: CSP estrita (`script-src 'self'` — o tema anti-flash saiu
+  do inline e virou `public/theme-init.js`, versionado no precache), headers de
+  segurança em `server/app.ts` (nosniff, frame-ancestors DENY, referrer,
+  permissions-policy, COOP/CORP; HSTS + `upgrade-insecure-requests` quando
+  `APP_URL` é https), `bodyLimit` de 2 MB em `/api/*` (413 acima disso).
+  `theme-init.js` servido com `Cache-Control: no-cache` junto com index/sw/manifest.
+  Auditoria: better-auth telemetry off por padrão (1.7.7), cookies HttpOnly +
+  SameSite + checagem de Origin, Prisma parametrizado, segredos só no `.env`.
+- **Falta (passo final, após G)**: teste de aceitação completo — dois
+  navegadores reais, offline/modo avião e idempotência (a aproximação
+  automatizada de dois "dispositivos" via harness Node já cobre sync em
+  processos separados contra o mesmo servidor).
 - Quando houver usuários reais, toda mudança de schema do Dexie exige nova
   `db.version(n)` com `.upgrade()` (o protótipo atual usa `version(1)` único e
   pode simplesmente recriar o IndexedDB).
