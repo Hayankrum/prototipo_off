@@ -150,3 +150,25 @@ export async function mesclar(itens: Item[]): Promise<number> {
   })
   return gravados
 }
+
+export async function aplicarRemoto(registros: Item[]): Promise<number> {
+  if (registros.length === 0) return 0
+  let aplicados = 0
+  await db.transaction('rw', db.items, db.outbox, async () => {
+    const pendentes = new Set(
+      (await db.outbox.toArray()).map((entrada) => `${entrada.tabela}:${entrada.registroId}`),
+    )
+    const paraGravar: Item[] = []
+    for (const registro of registros) {
+      if (pendentes.has(`${TABELA}:${registro.id}`)) continue
+      const atual = await db.items.get(registro.id)
+      if (atual !== undefined && atual.updatedAt > registro.updatedAt) continue
+      paraGravar.push(registro)
+    }
+    if (paraGravar.length > 0) {
+      await db.items.bulkPut(paraGravar)
+      aplicados = paraGravar.length
+    }
+  })
+  return aplicados
+}

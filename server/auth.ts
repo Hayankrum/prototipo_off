@@ -27,9 +27,10 @@ export const auth = betterAuth({
       maxAge: 60 * 5,
     },
   },
+  // get-session é chamado a cada ciclo de sync; em dev fica livre (padrão better-auth)
   rateLimit: {
-    enabled: true,
+    enabled: env.NODE_ENV === 'production',
     window: 60,
-    max: 10,
+    max: 120,
   },
 })
