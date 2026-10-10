@@ -17,7 +17,8 @@
     "qrcode": "^1.5.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.9.3"
+    "react-router-dom": "^7.9.3",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/qrcode": "^1.5.6",

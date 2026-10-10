@@ -1,13 +1,8 @@
-export interface Item {
-  id: string
-  titulo: string
-  descricao: string
-  concluido: boolean
-  criadoEm: number
-  updatedAt: number
-  deletedAt?: number
-  serverVersion?: number
-}
+import type { Item } from '@shared/schemas/item'
+import type { Mutacao, OperacaoOutbox } from '@shared/schemas/outbox'
+import type { SessaoLocal } from '@shared/schemas/usuario'
+
+export type { Item, OperacaoOutbox, SessaoLocal }
 
 export type ValorConfig = string | number | boolean | null
 
@@ -16,23 +11,9 @@ export interface EntradaConfig {
   valor: ValorConfig
 }
 
-export type OperacaoOutbox = 'upsert' | 'delete'
-
-export interface EntradaOutbox {
-  id: string
-  tabela: string
-  registroId: string
-  operacao: OperacaoOutbox
-  payload: Item
+export type EntradaOutbox = Mutacao & {
   criadoEm: number
   tentativas: number
-}
-
-export interface SessaoLocal {
-  usuarioId: string
-  email: string
-  nome: string | null
-  expiraEm: number | null
 }
 
 export interface EstadoSync {
