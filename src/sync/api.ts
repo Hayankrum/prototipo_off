@@ -28,7 +28,7 @@ export class ErroRede extends Error {
   }
 }
 
-async function fetchComTimeout(url: string, init?: RequestInit): Promise<Response> {
+export async function fetchComTimeout(url: string, init?: RequestInit): Promise<Response> {
   try {
     return await fetch(url, {
       ...init,

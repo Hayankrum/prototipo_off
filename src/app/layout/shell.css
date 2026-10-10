@@ -112,6 +112,38 @@
   outline-offset: 1px;
 }
 
+.top-nav-botao--ativo {
+  background: var(--cor-superficie-2);
+}
+
+.top-nav-status--positivo {
+  color: var(--cor-sucesso);
+}
+
+.top-nav-status--atencao {
+  color: var(--cor-aviso-texto);
+}
+
+.top-nav-status--erro {
+  color: var(--cor-perigo);
+}
+
+@keyframes top-nav-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.top-nav-icone-girando {
+  animation: top-nav-girar 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-nav-icone-girando {
+    animation: none;
+  }
+}
+
 .shell-conteudo {
   flex: 1;
   width: 100%;

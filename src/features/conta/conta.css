@@ -1,0 +1,70 @@
+.conta-formulario {
+  margin-top: 16px;
+}
+
+.conta-erro {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: var(--cor-perigo);
+}
+
+.conta-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.conta-status-icone {
+  flex-shrink: 0;
+  color: var(--cor-texto-suave);
+}
+
+.conta-status--positivo .conta-status-icone,
+.conta-status--positivo strong {
+  color: var(--cor-sucesso);
+}
+
+.conta-status--atencao .conta-status-icone,
+.conta-status--atencao strong {
+  color: var(--cor-aviso-texto);
+}
+
+.conta-status--erro .conta-status-icone,
+.conta-status--erro strong {
+  color: var(--cor-perigo);
+}
+
+.conta-status-icone--girando {
+  animation: conta-girar 1s linear infinite;
+}
+
+@keyframes conta-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conta-status-icone--girando {
+    animation: none;
+  }
+}
+
+.conta-detalhes {
+  margin-top: 8px;
+}
+
+.conta-email {
+  margin: 0 0 2px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.conta-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}

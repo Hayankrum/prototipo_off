@@ -1,8 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { House, Info, ListChecks, Moon, Settings, Sun } from 'lucide-react'
+import { House, Info, ListChecks, Moon, Settings, Sun, UserRound } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import appConfig from '../app.config.json'
 import { useSettings } from '../../features/settings/useSettings'
+import { useSyncStatus } from '../../features/conta/useSyncStatus'
+import { DESCRICOES_FASE, iconeDaFase } from '../../features/conta/sync-estado'
 
 interface LinkNavegacao {
   to: string
@@ -14,6 +16,7 @@ interface LinkNavegacao {
 const LINKS: LinkNavegacao[] = [
   { to: '/', rotulo: 'Início', icone: House, exato: true },
   { to: '/itens', rotulo: 'Itens', icone: ListChecks },
+  { to: '/conta', rotulo: 'Conta', icone: UserRound },
   { to: '/sobre', rotulo: 'Sobre', icone: Info },
   { to: '/config', rotulo: 'Ajustes', icone: Settings },
 ]
@@ -24,9 +27,13 @@ function estaEscuro(): boolean {
 
 export function TopNav() {
   const { tema, definirTema } = useSettings()
+  const statusSync = useSyncStatus()
 
   const escuro =
     tema === 'escuro' || (tema === 'sistema' && estaEscuro())
+
+  const descricaoSync = DESCRICOES_FASE[statusSync.fase]
+  const IconeSync = iconeDaFase(statusSync.fase)
 
   function alternarTema() {
     void definirTema(escuro ? 'claro' : 'escuro')
@@ -62,6 +69,24 @@ export function TopNav() {
         </ul>
 
         <div className="top-nav-acoes">
+          <NavLink
+            to="/conta"
+            className={({ isActive }) =>
+              `top-nav-botao top-nav-status top-nav-status--${descricaoSync.tom}${
+                isActive ? ' top-nav-botao--ativo' : ''
+              }`
+            }
+            aria-label={`Conta e sincronização: ${descricaoSync.rotulo.toLowerCase()}`}
+            title={`Sincronização: ${descricaoSync.rotulo}`}
+          >
+            <IconeSync
+              size={18}
+              aria-hidden="true"
+              className={
+                descricaoSync.girando ? 'top-nav-icone-girando' : undefined
+              }
+            />
+          </NavLink>
           <button
             type="button"
             className="top-nav-botao"

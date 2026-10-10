@@ -4,6 +4,7 @@ import { HomePage } from '../features/home/HomePage'
 import { ItemsPage } from '../features/items/ItemsPage'
 import { AboutPage } from '../features/about/AboutPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
+import { ContaPage } from '../features/conta/ContaPage'
 
 export const router = createHashRouter([
   {
@@ -12,6 +13,7 @@ export const router = createHashRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'itens', element: <ItemsPage /> },
+      { path: 'conta', element: <ContaPage /> },
       { path: 'sobre', element: <AboutPage /> },
       { path: 'config', element: <SettingsPage /> },
       { path: '*', element: <Navigate to="/" replace /> },

@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom'
-import { AlertTriangle, CircleCheck, CircleDashed, ListTodo } from 'lucide-react'
+import { AlertTriangle, CloudOff, CircleCheck, CircleDashed, ListTodo } from 'lucide-react'
 import appConfig from '../../app/app.config.json'
 import { useItemsStats } from '../items/useItems'
 import { useSettings } from '../settings/useSettings'
+import { useSyncStatus } from '../conta/useSyncStatus'
 import { diasDesde } from '../../shared/lib/date'
 import './home.css'
 
 export function HomePage() {
   const { total, concluidos, pendentes } = useItemsStats()
   const { ultimoBackupEm } = useSettings()
+  const { fase } = useSyncStatus()
 
   const diasSemBackup = ultimoBackupEm === null ? null : diasDesde(ultimoBackupEm)
   const avisoBackup = diasSemBackup === null || diasSemBackup > 30
@@ -27,8 +29,8 @@ export function HomePage() {
           </h1>
 
           <p className="hero-texto">
-            Um app de itens que funciona <strong>100% offline</strong>. Tudo fica salvo apenas
-            neste dispositivo, sem contas e sem servidor.
+            Um app de itens que funciona <strong>100% offline</strong>. Tudo fica salvo primeiro
+            neste dispositivo — com conta opcional para sincronizar na nuvem.
           </p>
         </div>
       </section>
@@ -56,6 +58,16 @@ export function HomePage() {
           <p className="resumo-rotulo">Concluídos</p>
         </div>
       </section>
+
+      {fase === 'sem-sessao' ? (
+        <div className="aviso aviso--compacto" role="status">
+          <CloudOff size={16} aria-hidden="true" />
+          <span>
+            Sincronização desativada. <Link to="/conta">Conecte uma conta</Link> para levar seus
+            itens para a nuvem.
+          </span>
+        </div>
+      ) : null}
 
       {avisoBackup ? (
         <div className="aviso aviso--compacto" role="status">

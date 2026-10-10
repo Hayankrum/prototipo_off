@@ -10,6 +10,11 @@ export async function definir(chave: string, valor: ValorConfig): Promise<void> 
   await db.config.put({ chave, valor })
 }
 
+export async function obter(chave: string): Promise<ValorConfig | undefined> {
+  const entrada = await db.config.get(chave)
+  return entrada?.valor
+}
+
 export async function listar(): Promise<EntradaConfig[]> {
   return db.config.toArray()
 }

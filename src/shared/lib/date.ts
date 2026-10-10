@@ -25,6 +25,29 @@ export function diasDesde(timestamp: number): number {
   return Math.floor(ms / 86_400_000)
 }
 
+const UNIDADES_RELATIVAS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ['second', 1_000],
+  ['minute', 60_000],
+  ['hour', 3_600_000],
+  ['day', 86_400_000],
+]
+
+export function tempoRelativo(timestamp: number): string {
+  const decorrido = timestamp - Date.now()
+  const abs = Math.abs(decorrido)
+  const formatador = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
+  let unidade: Intl.RelativeTimeFormatUnit = 'day'
+  let escala = 86_400_000
+  for (const [nome, ms] of UNIDADES_RELATIVAS) {
+    if (abs < ms) {
+      unidade = nome
+      escala = ms
+      break
+    }
+  }
+  return formatador.format(Math.round(decorrido / escala), unidade)
+}
+
 export function formatarBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
   const unidades = ['B', 'KB', 'MB', 'GB', 'TB']

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { House, Info, ListChecks, Settings } from 'lucide-react'
+import { House, Info, ListChecks, Settings, UserRound } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface LinkNavegacao {
@@ -12,6 +12,7 @@ interface LinkNavegacao {
 const LINKS: LinkNavegacao[] = [
   { to: '/', rotulo: 'Início', icone: House, exato: true },
   { to: '/itens', rotulo: 'Itens', icone: ListChecks },
+  { to: '/conta', rotulo: 'Conta', icone: UserRound },
   { to: '/sobre', rotulo: 'Sobre', icone: Info },
   { to: '/config', rotulo: 'Ajustes', icone: Settings },
 ]

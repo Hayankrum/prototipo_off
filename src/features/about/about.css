@@ -92,6 +92,10 @@
   text-decoration: underline;
 }
 
+.sobre-link + .sobre-link {
+  margin-left: 16px;
+}
+
 .sobre-passos {
   display: flex;
   flex-direction: column;

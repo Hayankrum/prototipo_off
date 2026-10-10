@@ -142,7 +142,9 @@ export function SettingsPage() {
       <div className="pagina-cabecalho">
         <div>
           <h1 className="pagina-titulo">Configurações</h1>
-          <p className="pagina-subtitulo">Tudo é salvo apenas neste dispositivo.</p>
+          <p className="pagina-subtitulo">
+            Ajustes e dados ficam neste dispositivo; a sincronização é opcional pela Conta.
+          </p>
         </div>
       </div>
 
