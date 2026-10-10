@@ -35,6 +35,9 @@ mudanças de schema do Dexie podem recriar o banco (sem `.upgrade()`).
   `theme-init.js` servido com `Cache-Control: no-cache` junto com index/sw/manifest.
   Auditoria: better-auth telemetry off por padrão (1.7.7), cookies HttpOnly +
   SameSite + checagem de Origin, Prisma parametrizado, segredos só no `.env`.
+  Rate-limit (produção): 120/min geral **mais** a regra especial do better-auth
+  de 3 sign-in/sign-up a cada 10s de silêncio (anti brute-force; por isso o
+  harness de aceitação ritma os logins).
 - **Falta (passo final, após G)**: teste de aceitação completo — dois
   navegadores reais, offline/modo avião e idempotência (a aproximação
   automatizada de dois "dispositivos" via harness Node já cobre sync em
@@ -42,3 +45,30 @@ mudanças de schema do Dexie podem recriar o banco (sem `.upgrade()`).
 - Quando houver usuários reais, toda mudança de schema do Dexie exige nova
   `db.version(n)` com `.upgrade()` (o protótipo atual usa `version(1)` único e
   pode simplesmente recriar o IndexedDB).
+
+## Aceitação
+
+**Automatizada (feita)** — harness em `/tmp/opencode/e2e` (fora do repo, sem
+deps novas): `node entry.mjs` roda 55 verificações do SyncEngine+conta contra
+o servidor real; `node aceitacao.mjs <papel> <email> <senha>` simula
+dispositivos em processos separados (IndexedDB isolado), ritmados com
+≥12s entre logins (regra do better-auth: 3 sign-in a cada 10s de silêncio):
+`criar-conta` → `segundo-dispositivo` → `volta-dispositivo-a` →
+`offline-depois` → `conferir-final`. Cobre: nuvem como réplica (pull nos dois
+aparelhos), idempotência (re-sync não avança cursor), edição offline
+enviada depois, convergência final (9 itens nos dois lados).
+
+**Manual (resta ao humano, precisa de navegador real)**:
+
+1. `npm run dev` em Chrome e em Firefox/Safari (ou perfis separados) na mesma
+   máquina; criar conta em um, entrar no outro; itens criados num aparecem
+   no outro em segundos (indicador do TopNav volta a "Sincronizado").
+2. DevTools → Network → Offline no aparelho A: criar/editar itens; voltar a
+   online; B recebe tudo; nenhum erro permanente no cartão de Sincronização.
+3. Instalar a PWA (banner/Ajustes), fechar e reabrir pelo ícone, ativar modo
+   avião: app abre, itens carregam, criar funciona; sair do avião sincroniza.
+4. Trocar de aba/minimizar com pendências: sync roda sozinho ao voltar.
+5. Editar o mesmo item nos dois aparelhos offline; ao reconectar, vence o
+   último `updatedAt` nos dois lados (LWW) — sem duplicar nem sumir.
+6. Sair da conta: dados continuam locais; entrar com outra conta apaga
+   (com o aviso na tela de Conta).
