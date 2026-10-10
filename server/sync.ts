@@ -45,6 +45,31 @@ async function processarLote(
   const limiteTs = agoraMs + JANELA_MS
 
   await prisma.$transaction(async (tx) => {
+    // Primeira operação da transação: incrementa o contador do usuário.
+    // Isso locka a linha do usuário e serializa pushes concorrentes do mesmo
+    // usuário antes de qualquer leitura/escrita em item (mesma ordem de lock
+    // em todas as transações → sem deadlock, sem seq repetido).
+    const inicial = await tx.user.update({
+      where: { id: userId },
+      data: { seq: { increment: 1 } },
+      select: { seq: true },
+    })
+    let seqReservado: bigint | null = inicial.seq
+
+    const proximoSeq = async (): Promise<bigint> => {
+      if (seqReservado !== null) {
+        const reservado = seqReservado
+        seqReservado = null
+        return reservado
+      }
+      const { seq } = await tx.user.update({
+        where: { id: userId },
+        data: { seq: { increment: 1 } },
+        select: { seq: true },
+      })
+      return seq
+    }
+
     for (const mut of mutacoes) {
       if (mut.tabela !== TABELA_ITEMS) {
         resultados.push({ mutacaoId: mut.id, status: 'invalida' })
@@ -90,11 +115,7 @@ async function processarLote(
         continue
       }
 
-      const { seq } = await tx.user.update({
-        where: { id: userId },
-        data: { seq: { increment: 1 } },
-        select: { seq: true },
-      })
+      const seq = await proximoSeq()
       const dadosItem = {
         titulo: mut.payload.titulo,
         descricao: mut.payload.descricao,
@@ -121,6 +142,15 @@ async function processarLote(
         status: 'aplicada',
         serverVersion: Number(seq),
         registro: toWire(gravado),
+      })
+    }
+
+    // Lote sem nenhuma mutação aplicada devolve o número reservado
+    // para não deixar buraco na sequência.
+    if (seqReservado !== null) {
+      await tx.user.update({
+        where: { id: userId },
+        data: { seq: { decrement: 1 } },
       })
     }
   })

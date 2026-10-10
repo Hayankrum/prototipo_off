@@ -1,10 +1,15 @@
 node_modules/
 dist/
 dev-dist/
+dist-server/
 server/generated/
 .env
 *.local
 .DS_Store
 npm-debug.log*
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
 
 /server/generated/prisma
