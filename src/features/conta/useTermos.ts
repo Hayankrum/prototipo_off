@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { TermosStatus } from '@shared/termos'
+import { useToast } from '../../shared/ui/Toast'
+import { sincronizarAgora } from '../../sync/syncEngine'
 import { aceitarTermos, statusTermos } from './termos.api'
 import { useSessao } from './useSessao'
 
@@ -64,4 +66,35 @@ export function useTermos(): SituacaoTermos {
   }, [])
 
   return { estado, status, erro, aceitar, recarregar: () => void carregar() }
+}
+
+export interface AcaoAceite {
+  estado: EstadoTermos
+  erro: string | null
+  aceitando: boolean
+  aceitarAgora: () => Promise<void>
+}
+
+/** Estado + ação de aceitar, com toast e disparo do sync — usado pelo pop-up e pela página. */
+export function useAceiteTermos(): AcaoAceite {
+  const { estado, erro, aceitar } = useTermos()
+  const { mostrar } = useToast()
+  const [aceitando, setAceitando] = useState(false)
+
+  const aceitarAgora = useCallback(async () => {
+    setAceitando(true)
+    try {
+      const ok = await aceitar()
+      if (ok) {
+        mostrar('Termos aceitos. Sincronizando seus itens…', { tipo: 'sucesso' })
+        void sincronizarAgora()
+      } else {
+        mostrar('Não foi possível registrar o aceite. Tente de novo.', { tipo: 'erro' })
+      }
+    } finally {
+      setAceitando(false)
+    }
+  }, [aceitar, mostrar])
+
+  return { estado, erro, aceitando, aceitarAgora }
 }

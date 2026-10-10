@@ -66,3 +66,42 @@
   color: var(--cor-perigo);
   font-size: 0.85rem;
 }
+
+.termos-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: min(52dvh, 440px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.termos-corpo-resumo {
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.termos-corpo-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.termos-corpo-titulo {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.termos-corpo-texto {
+  color: var(--cor-texto-suave);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.termos-aceite-acoes {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}

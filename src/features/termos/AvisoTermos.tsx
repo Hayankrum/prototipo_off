@@ -1,45 +1,27 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Button } from '../../shared/ui/Button'
 import { Modal } from '../../shared/ui/Modal'
-import { useToast } from '../../shared/ui/Toast'
-import { useTermos } from '../conta/useTermos'
-import { sincronizarAgora } from '../../sync/syncEngine'
+import { TERMOS_VERSAO } from '@shared/termos'
+import { useAceiteTermos } from '../conta/useTermos'
+import { SECOES_TERMOS, TERMOS_PUBLICADO_EM } from './conteudo'
+import { formatarData } from '../../shared/lib/date'
 import './termos.css'
 
 /**
  * Pop-up obrigatório para quem ainda não aceitou a versão vigente dos termos:
- * aparece para contas já cadastradas assim que há sessão local.
+ * o texto completo aparece aqui mesmo, com o botão de aceitar logo abaixo.
  */
 export function AvisoTermos() {
-  const { estado, erro, aceitar } = useTermos()
-  const { mostrar } = useToast()
+  const { estado, erro, aceitando, aceitarAgora } = useAceiteTermos()
   const [adiado, setAdiado] = useState(false)
-  const [aceitando, setAceitando] = useState(false)
 
   if (estado !== 'pendente' || adiado) return null
-
-  async function aceitarAgora() {
-    setAceitando(true)
-    try {
-      const ok = await aceitar()
-      if (ok) {
-        mostrar('Termos aceitos. Sincronizando seus itens…', { tipo: 'sucesso' })
-        void sincronizarAgora()
-      } else {
-        mostrar('Não foi possível registrar o aceite. Tente de novo.', { tipo: 'erro' })
-      }
-    } finally {
-      setAceitando(false)
-    }
-  }
 
   return (
     <Modal
       aberto
-      titulo="Atualização dos termos"
+      titulo="Termos de uso e privacidade"
       onFechar={() => setAdiado(true)}
-      largura="estreito"
       rodape={
         <>
           <Button variante="secundario" onClick={() => setAdiado(true)} disabled={aceitando}>
@@ -51,21 +33,31 @@ export function AvisoTermos() {
         </>
       }
     >
-      <p className="modal-texto">
-        Nossa Política de privacidade e os Termos de uso foram atualizados (versão vigente).
-        Enquanto você não aceitar, a sincronização com a nuvem fica suspensa — seus itens seguem
-        salvos neste aparelho.
-      </p>
-      <p className="modal-texto">
-        <Link to="/termos" onClick={() => setAdiado(true)}>
-          Ler os termos completos
-        </Link>
-      </p>
-      {erro ? (
-        <p className="termos-erro" role="alert">
-          {erro}
+      <div className="termos-corpo">
+        <p className="termos-corpo-resumo">
+          Versão {TERMOS_VERSAO}, publicada em {formatarData(TERMOS_PUBLICADO_EM)}. Enquanto você
+          não aceitar, a sincronização com a nuvem fica suspensa — seus itens seguem salvos neste
+          aparelho.
         </p>
-      ) : null}
+        {SECOES_TERMOS.map((secao) => (
+          <section key={secao.id} className="termos-corpo-secao">
+            <h3 className="termos-corpo-titulo">{secao.titulo}</h3>
+            {secao.paragrafos.map((paragrafo) => (
+              <p key={paragrafo} className="termos-corpo-texto">
+                {paragrafo}
+              </p>
+            ))}
+          </section>
+        ))}
+        <p className="termos-rodape">
+          Dúvidas sobre estes termos ou sobre seus dados? Use o canal de contato do projeto.
+        </p>
+        {erro ? (
+          <p className="termos-erro" role="alert">
+            {erro}
+          </p>
+        ) : null}
+      </div>
     </Modal>
   )
 }
