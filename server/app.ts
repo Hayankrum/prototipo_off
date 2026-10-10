@@ -67,7 +67,8 @@ export function createApp(): Hono {
 
   app.route('/api', syncRoutes)
 
-  if (env.NODE_ENV === 'production') {
+  // No Vercel quem serve dist/ é a CDN (vercel.json); a função só cuida de /api
+  if (env.NODE_ENV === 'production' && !process.env.VERCEL) {
     // Assets com hash: cache longo. Documentos e bootstraps: sempre revalidar.
     app.use('/assets/*', (c, next) => {
       c.header('Cache-Control', 'public, max-age=31536000, immutable')
