@@ -1,109 +1,98 @@
-# Meu App
+# Base app — Vite fullstack offline-first
 
-PWA **100% offline-first** feito com Vite + React + TypeScript, Dexie (IndexedDB) e Workbox
-(`vite-plugin-pwa`, `generateSW`, `registerType: 'prompt'`).
+Base reutilizável "um repo, um deploy": **Vite + React 19 + Dexie** no cliente
+(100% offline, a UI lê e escreve só no IndexedDB) e **Hono + Prisma + Postgres +
+better-auth** no servidor (mesma origem, sem CORS). A nuvem é uma réplica
+sincronizada em segundo plano via outbox.
 
-A internet é usada **uma única vez**, para baixar o app. Depois da primeira abertura tudo funciona
-sem rede: não existe estado "online/offline" no código, nenhum `fetch` em runtime e nenhuma URL
-externa em HTML, JS ou CSS.
+O plano de evolução e as notas de cada etapa estão em [PLAN.md](./PLAN.md).
 
-## Comandos
+## Requisitos
+
+- Node 22+ (testado com Node 26)
+- Docker + Docker Compose (para Postgres e para o deploy)
+
+## Começando rápido (docker)
 
 ```bash
+cp .env.example .env         # preencha AUTH_SECRET (openssl rand -base64 32)
+docker compose up -d postgres
+docker compose run --rm migrate    # aplica as migrations (passo explícito)
 npm install
-npm run dev        # desenvolvimento (sem Service Worker)
-npm run build      # typecheck + build de produção
-npm run preview    # serve dist/ — é aqui que o SW funciona
-npm run typecheck  # só o TypeScript
-npm run icons      # regenera os PNGs dos ícones a partir dos SVGs
+npm run dev                  # Vite em :5173 + API em :3000 (proxy /api)
 ```
 
-> **Importante:** o Service Worker só fica ativo no `build` + `preview` (ou com
-> `devOptions.enabled` no `vite.config.ts`). Para testar modo offline, use `npm run build` e
-> `npm run preview` e marque **DevTools > Application > Service Workers > Offline**.
+`npm run dev` sobe **os dois processos** (web e api) com `concurrently`; o
+navegador fala só com `:5173` e o Vite repassa `/api` (com cookies) para `:3000`.
 
-## Como trocar o nome (e as cores) do app
+Para subir o app completo em produção via Docker:
 
-Tudo em um único lugar: `src/app/app.config.json`
-
-```json
-{
-  "id": "meu-app",          // id estável usado no backup
-  "name": "Meu App",        // nome completo (manifest, título, cabeçalho)
-  "shortName": "Meu App",   // nome curto (tela inicial)
-  "description": "...",
-  "dbName": "MeuAppDB",     // nome do banco IndexedDB (mudar apaga dados existentes)
-  "themeColor": "#0f172a",  // cor do manifesto/instalação
-  "backgroundColor": "#f8fafc",
-  "metaThemeColorClaro": "#f8fafc",
-  "metaThemeColorEscuro": "#0f172a"
-}
+```bash
+docker compose up --build app   # app em http://localhost:3000 (serve dist/ + API)
 ```
 
-Exceções (para manter antes do React carregar):
+## Começando rápido (Postgres local, sem docker no app)
 
-- `index.html`: `<title>`, `apple-mobile-web-app-title` e as cores do `<script>` inline de tema
-  (elas são aplicadas antes do bundle, para não piscar tema errado). O `document.title` é reescrito
-  a partir do `app.config.json` em `src/main.tsx`.
-- `package.json`: `name`/`version` (a versão entra no app via `define: { __APP_VERSION__ }`).
+```bash
+cp .env.example .env         # aponte DATABASE_URL para o seu Postgres
+npm install
+npm run db:migrate           # prisma migrate dev (--config explícito)
+npm run dev
+```
+
+## Scripts
+
+| Script | O que faz |
+|---|---|
+| `npm run dev` | Vite (`:5173`, proxy `/api`) + servidor com `tsx watch` (`:3000`) |
+| `npm run build` | typecheck (client+server) + `dist/` do cliente + `dist-server/index.js` (esbuild) |
+| `npm start` | produção: **um processo, uma porta** — `node dist-server/index.js` serve API e `dist/` |
+| `npm run typecheck` | `tsc` nos dois projetos (client e server) |
+| `npm run db:migrate` | `prisma migrate dev --config prisma7.config.ts` |
+| `npm run db:deploy` | `prisma migrate deploy --config prisma7.config.ts` (produção/Docker) |
+| `npm run db:studio` | Prisma Studio |
+| `npm run icons` | regenera PNGs dos ícones a partir dos SVGs |
+
+Produção sem Docker: `npm run build && npm start` (usa `.env` se existir).
+
+## Variáveis de ambiente
+
+Ver [`.env.example`](./.env.example): `DATABASE_URL`, `AUTH_SECRET` (≥32 chars),
+`APP_URL` (origem pública; em dev é a do Vite — o servidor aceita
+`localhost:5173` como `trustedOrigins` somente em `NODE_ENV=development`),
+`PORT`, `NODE_ENV`. Validadas com Zod em `server/env.ts`.
 
 ## Estrutura
 
 ```
-src/
-├── app/            App, router (createHashRouter), providers, AppShell, TopNav, BottomNav
-├── features/
-│   ├── home/       resumo + atalho + aviso de backup
-│   ├── items/      ItemsPage, ItemForm, ItemList, useItems, items.repo.ts
-│   ├── about/      Sobre + ShareSection (QR gerado localmente, sem rede)
-│   ├── settings/   Configurações + useSettings
-│   ├── theme/      ThemeProvider + themes.css (variáveis + data-theme)
-│   └── pwa/        useInstallPrompt, InstallBanner, IOSInstallModal, UpdateToast
-├── db/             database.ts (schema versionado), schema.ts, config.repo.ts
-├── shared/
-│   ├── ui/         Button, Input/TextArea, Modal, ConfirmDialog, Toast
-│   └── lib/        backup.ts, date.ts, storage.ts, id.ts, texto.ts
-└── main.tsx
+src/            cliente (Vite + React + Dexie + PWA)
+server/         API Hono (auth, sync push/pull, estáticos em produção)
+shared/         schemas Zod usados por cliente e servidor (@shared/*)
+prisma/         schema.prisma + migrations
+Dockerfile      multi-stage: deps → build → runtime (non-root, só prod)
+docker-compose.yml  app + postgres (healthcheck; migrations via `run --rm migrate`)
 ```
 
-Regras de camada:
+Regras de camada do cliente:
 
-- Componentes **nunca** importam o Dexie. Todo acesso passa por `items.repo.ts` e
-  `config.repo.ts`; as telas leem com `useLiveQuery` através de `useItems` e `useSettings`.
-- Tema: fonte oficial é a tabela `config` (chave `tema`), espelhada no `localStorage`
-  (`meu-app:tema`) e aplicada por script inline antes do React carregar.
-- Backup: `src/shared/lib/backup.ts` com formato
-  `{ app, schemaVersion, exportadoEm, dados: { itens } }` e validação do arquivo.
+- Componentes **nunca** importam o Dexie. Todo acesso passa por
+  `items.repo.ts`/`config.repo.ts`; leituras reativas com `useLiveQuery`
+  (`useItems`, `useSettings`).
+- Toda escrita grava o registro **e** a entrada no outbox na mesma transação
+  Dexie — o SyncEngine (etapa E) envia o outbox para `/api/sync/push`.
+- Sync: `POST /api/sync/push` idempotente por id de mutação (LWW por
+  `updatedAt`, `serverVersion` = `serverSeq`); `GET /api/sync/pull?cursor=N`
+  paginado com cursor monotônico **por usuário**. Sessão better-auth obrigatória.
 
 ## Ícones
 
-SVGs em `public/icons/` (`icon.svg`, `icon-maskable.svg`) e `public/favicon.svg`.
-PNGs gerados (192, 512, maskable 512, apple-touch-icon 180) — regenere com `npm run icons`
-(requer `rsvg-convert`, ImageMagick ou Inkscape). Depois de trocar o desenho, rode o script e
-refaça o `build`.
-
-## Checklist de teste manual
-
-1. `npm run build && npm run preview` e abrir `http://localhost:4173`.
-2. Na primeira abertura, aparece o toast **"Pronto para uso offline"** (uma única vez).
-3. DevTools > Application > Service Workers: status `activated`, marcar **Offline**.
-4. Recarregar e navegar por todas as rotas: Início, Itens, Sobre, Configurações (offline).
-5. Criar, editar, concluir/reabrir e excluir itens (com confirmação); busca e filtros.
-6. Trocar tema (claro/escuro/sistema) e verificar `<meta name="theme-color">` e ausência de flash.
-7. Exportar JSON, importar de volta (mesclar e substituir), validar arquivo inválido.
-8. Apagar todos os dados com a dupla confirmação.
-9. Popup de instalação: no Chromium, banner "Instalar/Agora não" (reaparece após 14 dias);
-   no Safari/iOS, modal "Compartilhar → Adicionar à Tela de Início".
-10. Nova versão: mudar algo, rebuild e reabrir — aparece "Nova versão disponível" com
-    **Atualizar** (nunca recarrega sozinho).
-11. Lighthouse (PWA): `npx lighthouse http://localhost:4173 --only-categories=pwa --view`.
+SVGs em `public/icons/`; PNGs gerados — regenere com `npm run icons` (requer
+`rsvg-convert`, ImageMagick ou Inkscape) e refaça o `build`.
 
 ## Limitações conhecidas
 
-- **iOS/Safari** não dispara `beforeinstallprompt`: o fluxo é o modal manual de compartilhamento.
-- **Safari (iOS)** ignora `navigator.storage.persist()`; o espaço não é garantido e dados podem
-  ser removidos pelo navegador em baixo armazenamento.
-- **Sem push notifications** e sem sincronização em segundo plano (`background sync`).
+- iOS/Safari: sem `beforeinstallprompt` (modal manual) e sem
+  `storage.persist()`; sem push notifications e sem background sync.
 - O Service Worker só roda em contexto seguro (HTTPS ou `localhost`).
-- Primeira visita ainda depende de rede; após o download, o app nunca mais precisa dela.
-- Se o navegador for limpo (dados do site), os itens vão junto — use o backup em JSON.
+- Protótipo: sem `.upgrade()` no Dexie — mudanças de schema podem recriar o
+  banco (ver PLAN.md).

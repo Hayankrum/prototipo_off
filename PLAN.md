@@ -9,7 +9,7 @@ mudanças de schema do Dexie podem recriar o banco (sem `.upgrade()`).
 | A | Preparar cliente para sincronizar (campos de sync, outbox, syncState) | ✅ |
 | B | Pacote `shared/` com schemas Zod | ✅ |
 | C | Servidor Hono + Prisma + better-auth, push idempotente, pull por cursor | ✅ |
-| D | Dev e build unificados (um processo em produção) | pendente |
+| D | Dev e build unificados (um processo em produção) | ✅ |
 | E | SyncEngine no cliente (push/pull em segundo plano) | pendente |
 | F | Conta e estado na interface | pendente |
 | G | PWA e segurança | pendente |

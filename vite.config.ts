@@ -14,6 +14,14 @@ export default defineConfig({
       '@shared': fileURLToPath(new URL('./shared', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: false,
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
