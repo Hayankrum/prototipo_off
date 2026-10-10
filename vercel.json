@@ -1,9 +1,10 @@
 {
   "framework": "vite",
+  "installCommand": "npm install && npm run build:function",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/**/*.ts": {
+    "api/index.js": {
       "maxDuration": 30
     }
   },
