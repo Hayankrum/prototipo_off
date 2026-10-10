@@ -5,6 +5,32 @@ import { gerarId } from '../shared/lib/id'
 
 export const LIMITE_LOTE_PUSH = 100
 
+type ItemLegado = Item & { atualizadoEm?: number; deletadoEm?: number }
+
+/**
+ * Registros gravados antes da migração de campos (`atualizadoEm`/`deletadoEm`)
+ * podem estar sem `updatedAt`/`deletedAt`; sem isso o push é rejeitado pelo
+ * zod do servidor (`payload.updatedAt` esperado como número).
+ */
+export function normalizarItem(registro: Item): Item {
+  const legado = registro as ItemLegado
+  const item: Item = { ...registro }
+  if (typeof item.updatedAt !== 'number') {
+    item.updatedAt =
+      typeof legado.atualizadoEm === 'number'
+        ? legado.atualizadoEm
+        : typeof item.criadoEm === 'number'
+          ? item.criadoEm
+          : Date.now()
+  }
+  if (typeof item.deletedAt !== 'number' && typeof legado.deletadoEm === 'number') {
+    item.deletedAt = legado.deletadoEm
+  }
+  delete (item as ItemLegado).atualizadoEm
+  delete (item as ItemLegado).deletadoEm
+  return item
+}
+
 export function novaMutacao(
   tabela: string,
   registro: Item,
@@ -16,7 +42,7 @@ export function novaMutacao(
     tabela,
     registroId: registro.id,
     operacao,
-    payload: registro,
+    payload: normalizarItem(registro),
     criadoEm,
     tentativas: 0,
   }
@@ -28,7 +54,7 @@ export function paraWire(entrada: EntradaOutbox): Mutacao {
     tabela: entrada.tabela,
     registroId: entrada.registroId,
     operacao: entrada.operacao,
-    payload: entrada.payload,
+    payload: normalizarItem(entrada.payload),
   }
 }
 

@@ -1,6 +1,6 @@
 import db from '../../db/database'
 import { definir, obter } from '../../db/config.repo'
-import { novaMutacao } from '../../db/outbox.repo'
+import { normalizarItem, novaMutacao } from '../../db/outbox.repo'
 import * as syncState from '../../db/sync-state.repo'
 import type { SessaoLocal } from '@shared/schemas/usuario'
 
@@ -22,7 +22,13 @@ export async function enfileirarItensParaSync(): Promise<number> {
     )
     const agora = Date.now()
     const itens = await db.items.toArray()
-    const mutacoes = itens
+    const normais = itens.map(normalizarItem)
+    const reparados = normais.filter(
+      (item, indice) =>
+        item.updatedAt !== itens[indice].updatedAt || item.deletedAt !== itens[indice].deletedAt,
+    )
+    if (reparados.length > 0) await db.items.bulkPut(reparados)
+    const mutacoes = normais
       .filter((item) => !pendentes.has(`${TABELA}:${item.id}`))
       .map((item) =>
         novaMutacao(
