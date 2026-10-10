@@ -1,6 +1,10 @@
 node_modules/
 dist/
 dev-dist/
+server/generated/
+.env
 *.local
 .DS_Store
 npm-debug.log*
+
+/server/generated/prisma

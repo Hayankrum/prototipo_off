@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../server/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  // Contador monotônico por usuário: fonte do serverSeq/cursor de sync.
+  // Incrementado dentro da transação de push (serializa as escritas do usuário).
+  seq           BigInt    @default(0)
+  sessions      Session[]
+  accounts      Account[]
+  itens         Item[]
+  mutacoes      SyncMutation[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// Dados sincronizáveis. Epoch ms (BigInt) igual ao cliente; serverSeq é o
+// cursor por usuário e também o serverVersion devolvido ao cliente.
+model Item {
+  id        String   @id
+  userId    String
+  titulo    String
+  descricao String
+  concluido Boolean  @default(false)
+  criadoEm  BigInt
+  updatedAt BigInt
+  deletedAt BigInt?
+  serverSeq BigInt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, serverSeq])
+  @@map("item")
+}
+
+// Log de idempotência do push: cada id de mutação aplicada (ou avaliada como
+// "ignorada") aparece no máximo uma vez — reenviar o mesmo lote não duplica.
+model SyncMutation {
+  id        String   @id
+  userId    String
+  appliedAt BigInt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sync_mutation")
+}
