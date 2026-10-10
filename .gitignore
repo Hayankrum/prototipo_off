@@ -2,7 +2,6 @@ node_modules/
 dist/
 dev-dist/
 dist-server/
-api/index.js
 server/generated/
 .env
 *.local
