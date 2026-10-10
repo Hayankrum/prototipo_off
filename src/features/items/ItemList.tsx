@@ -1,4 +1,5 @@
 import { Check, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Button } from '../../shared/ui/Button'
 import type { Item } from '../../db/schema'
 import { formatarData } from '../../shared/lib/date'
@@ -6,6 +7,7 @@ import { formatarData } from '../../shared/lib/date'
 export interface ItemListProps {
   itens: Item[]
   filtrando: boolean
+  podeEditar: boolean
   aoAlternar: (item: Item) => void
   aoEditar: (item: Item) => void
   aoExcluir: (item: Item) => void
@@ -15,6 +17,7 @@ export interface ItemListProps {
 export function ItemList({
   itens,
   filtrando,
+  podeEditar,
   aoAlternar,
   aoEditar,
   aoExcluir,
@@ -51,6 +54,7 @@ export function ItemList({
             className="item-concluir"
             role="checkbox"
             aria-checked={item.concluido}
+            disabled={!podeEditar}
             aria-label={
               item.concluido
                 ? `Reabrir item ${item.titulo}`
@@ -62,29 +66,35 @@ export function ItemList({
           </button>
 
           <div className="item-corpo">
-            <p className="item-titulo">{item.titulo}</p>
+            <p className="item-titulo">
+              <Link className="item-titulo-link" to={`/itens/${item.id}`}>
+                {item.titulo}
+              </Link>
+            </p>
             {item.descricao ? <p className="item-descricao">{item.descricao}</p> : null}
             <p className="item-data">criado em {formatarData(item.criadoEm)}</p>
           </div>
 
-          <div className="item-acoes">
-            <button
-              type="button"
-              className="item-acao"
-              aria-label={`Editar item ${item.titulo}`}
-              onClick={() => aoEditar(item)}
-            >
-              <Pencil size={17} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="item-acao item-acao--perigo"
-              aria-label={`Excluir item ${item.titulo}`}
-              onClick={() => aoExcluir(item)}
-            >
-              <Trash2 size={17} aria-hidden="true" />
-            </button>
-          </div>
+          {podeEditar ? (
+            <div className="item-acoes">
+              <button
+                type="button"
+                className="item-acao"
+                aria-label={`Editar item ${item.titulo}`}
+                onClick={() => aoEditar(item)}
+              >
+                <Pencil size={17} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="item-acao item-acao--perigo"
+                aria-label={`Excluir item ${item.titulo}`}
+                onClick={() => aoExcluir(item)}
+              >
+                <Trash2 size={17} aria-hidden="true" />
+              </button>
+            </div>
+          ) : null}
         </li>
       ))}
     </ul>

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { LogOut, RefreshCw, ShieldCheck } from 'lucide-react'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
@@ -8,6 +9,7 @@ import { pluralizar } from '../../shared/lib/texto'
 import { contarPendentes } from '../../db/outbox.repo'
 import { sincronizarAgora } from '../../sync/syncEngine'
 import { LIMITE_SENHA, criarConta, entrar, sair } from './conta.api'
+import { aceitarTermos } from './termos.api'
 import { conectar, desconectar } from './conta.repo'
 import { DESCRICOES_FASE, iconeDaFase } from './sync-estado'
 import { useSessao } from './useSessao'
@@ -32,6 +34,7 @@ export function ContaPage() {
   const [erroForm, setErroForm] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [saindo, setSaindo] = useState(false)
+  const [aceitouTermos, setAceitouTermos] = useState(false)
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
@@ -44,6 +47,10 @@ export function ContaPage() {
       setErroForm(`A senha precisa de pelo menos ${LIMITE_SENHA} caracteres.`)
       return
     }
+    if (modo === 'criar' && !aceitouTermos) {
+      setErroForm('Para criar a conta, aceite os Termos de uso e a Política de privacidade.')
+      return
+    }
     setErroForm(null)
     setEnviando(true)
     try {
@@ -51,6 +58,15 @@ export function ContaPage() {
         modo === 'criar'
           ? await criarConta({ email: emailLimpo, senha, nome })
           : await entrar({ email: emailLimpo, senha })
+      if (modo === 'criar') {
+        // Aceite registrado no servidor antes da primeira sincronização.
+        // Se falhar, o pop-up de termos aparece na próxima abertura.
+        try {
+          await aceitarTermos()
+        } catch {
+          /* vira pendência para o pop-up */
+        }
+      }
       const resultado = await conectar(novaSessao)
       setSenha('')
       await sincronizarAgora()
@@ -73,7 +89,9 @@ export function ContaPage() {
       await sair()
       await desconectar()
       await sincronizarAgora()
-      mostrar('Desconectado. Seus dados continuam neste aparelho.', { tipo: 'info' })
+      mostrar('Desconectado. Seus itens continuam salvos neste aparelho — entre de novo para vê-los.', {
+        tipo: 'info',
+      })
     } catch {
       mostrar('Não foi possível sair da conta', { tipo: 'erro' })
     } finally {
@@ -88,7 +106,7 @@ export function ContaPage() {
           <div>
             <h1 className="pagina-titulo">Conta</h1>
             <p className="pagina-subtitulo">
-              Opcional: entre para sincronizar seus itens com a nuvem.
+              Entre ou crie uma conta para ver e criar seus itens.
             </p>
           </div>
         </div>
@@ -134,6 +152,23 @@ export function ContaPage() {
                 placeholder="Como devemos te chamar"
               />
             ) : null}
+            {modo === 'criar' ? (
+              <label className="conta-termos">
+                <input
+                  type="checkbox"
+                  checked={aceitouTermos}
+                  onChange={(evento) => setAceitouTermos(evento.target.checked)}
+                  required
+                />
+                <span>
+                  Li e aceito os{' '}
+                  <Link to="/termos" target="_blank" rel="noopener noreferrer">
+                    Termos de uso e a Política de privacidade
+                  </Link>
+                  .
+                </span>
+              </label>
+            ) : null}
             {erroForm ? (
               <p className="conta-erro" role="alert">
                 {erroForm}
@@ -148,8 +183,9 @@ export function ContaPage() {
         <div className="aviso" role="status">
           <ShieldCheck size={16} aria-hidden="true" />
           <span>
-            Seus itens continuam neste aparelho e o app funciona offline. Ao entrar, tudo é
-            enviado para a conta — inclusive o que foi feito offline. Entrar com{' '}
+            Criar, editar e excluir itens só funciona com a conta conectada. Enquanto estiver
+            fora, seus itens ficam guardados neste aparelho — ao entrar, tudo é enviado para a
+            conta — inclusive o que foi feito offline. Entrar com{' '}
             <strong>outra conta</strong> apaga os dados locais para não misturar contas.
           </span>
         </div>
@@ -227,9 +263,10 @@ export function ContaPage() {
           Como funciona
         </h2>
         <p className="pagina-subtitulo">
-          O app continua 100% offline: tudo é salvo primeiro neste aparelho. Com a conta
-          conectada, o sync envia suas alterações em segundo plano e baixa o que mudrou em outros
-          aparelhos. Sem conta, nada sai daqui — e nada é perdido.
+          O app continua offline: tudo é salvo primeiro neste aparelho. Com a conta conectada,
+          você cria e edita itens e o sync envia suas alterações em segundo plano, baixando o que
+          mudou em outros aparelhos. Sem conta, os itens ficam guardados aqui e voltam a aparecer
+          quando você entrar de novo.
         </p>
       </section>
     </div>

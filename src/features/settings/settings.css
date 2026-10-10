@@ -128,3 +128,14 @@
     justify-content: flex-end;
   }
 }
+
+.ajustes-link {
+  align-self: flex-start;
+  color: var(--cor-texto);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.ajustes-link:hover {
+  text-decoration: underline;
+}

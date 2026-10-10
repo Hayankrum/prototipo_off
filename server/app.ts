@@ -4,6 +4,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { auth } from './auth'
 import { env } from './env'
 import { syncRoutes } from './sync'
+import { termosRoutes } from './termos'
 
 const LIMITE_CORPO_API = 2 * 1024 * 1024 // 2 MB (push aceita até 500 mutações)
 
@@ -66,6 +67,7 @@ export function createApp(): Hono {
   app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw))
 
   app.route('/api', syncRoutes)
+  app.route('/api', termosRoutes)
 
   // No Vercel quem serve dist/ é a CDN (vercel.json); a função só cuida de /api
   if (env.NODE_ENV === 'production' && !process.env.VERCEL) {

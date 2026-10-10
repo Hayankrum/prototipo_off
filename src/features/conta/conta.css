@@ -68,3 +68,25 @@
   gap: 8px;
   margin-top: 16px;
 }
+
+.conta-termos {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--cor-texto-suave);
+  cursor: pointer;
+}
+
+.conta-termos input {
+  flex-shrink: 0;
+  margin-top: 3px;
+  accent-color: var(--cor-acento);
+}
+
+.conta-termos a {
+  color: var(--cor-texto);
+  font-weight: 600;
+}

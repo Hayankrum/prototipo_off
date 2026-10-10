@@ -23,6 +23,9 @@ model User {
   // Contador monotônico por usuário: fonte do serverSeq/cursor de sync.
   // Incrementado dentro da transação de push (serializa as escritas do usuário).
   seq           BigInt    @default(0)
+  // Aceite dos Termos de uso/privacidade: versão + data/hora (prova de consentimento).
+  aceiteTermosEm      DateTime?
+  aceiteTermosVersao  String?
   sessions      Session[]
   accounts      Account[]
   itens         Item[]

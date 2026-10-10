@@ -12,6 +12,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Button } from '../../shared/ui/Button'
 import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { Modal } from '../../shared/ui/Modal'
@@ -33,6 +34,7 @@ import {
   type InfoArmazenamento,
 } from '../../shared/lib/storage'
 import { useInstallPrompt } from '../pwa/useInstallPrompt'
+import { usePodeEditar } from '../conta/usePodeEditar'
 import { useSettings } from './useSettings'
 import './settings.css'
 
@@ -58,6 +60,7 @@ export function SettingsPage() {
   const { mostrar } = useToast()
   const { tema, ultimoBackupEm, definirTema } = useSettings()
   const { disponivel, isIOS, isInstalled, install } = useInstallPrompt()
+  const podeEditar = usePodeEditar()
 
   const arquivoRef = useRef<HTMLInputElement>(null)
   const [backupLido, setBackupLido] = useState<{ arquivo: File; backup: ArquivoBackup } | null>(null)
@@ -87,7 +90,7 @@ export function SettingsPage() {
   async function aoEscolherArquivo(evento: ChangeEvent<HTMLInputElement>) {
     const arquivo = evento.target.files?.[0]
     evento.target.value = ''
-    if (!arquivo) return
+    if (!arquivo || !podeEditar) return
     const resultado = await lerInfoBackup(arquivo)
     if (!resultado.ok) {
       mostrar(resultado.erro, { tipo: 'erro', duracao: 6000 })
@@ -97,7 +100,7 @@ export function SettingsPage() {
   }
 
   async function importarBackup(modo: ModoImportacao) {
-    if (!backupLido) return
+    if (!backupLido || !podeEditar) return
     const resultado = await importar(backupLido.arquivo, modo)
     if (!resultado.ok) {
       mostrar(resultado.erro, { tipo: 'erro', duracao: 6000 })
@@ -116,6 +119,7 @@ export function SettingsPage() {
   }
 
   async function apagarDados() {
+    if (!podeEditar) return
     try {
       await apagarTudo()
       setEtapaLimpar(0)
@@ -143,7 +147,7 @@ export function SettingsPage() {
         <div>
           <h1 className="pagina-titulo">Configurações</h1>
           <p className="pagina-subtitulo">
-            Ajustes e dados ficam neste dispositivo; a sincronização é opcional pela Conta.
+            Ajustes e dados ficam neste dispositivo; itens são gerenciados com a conta conectada.
           </p>
         </div>
       </div>
@@ -225,9 +229,11 @@ export function SettingsPage() {
           <div className="ajustes-info">
             <p className="ajustes-rotulo">Exportar e importar</p>
             <p className="ajustes-descricao">
-              {ultimoBackupEm === null
-                ? 'Nenhum backup exportado ainda.'
-                : `Último backup em ${formatarDataHora(ultimoBackupEm)}.`}
+              {podeEditar
+                ? ultimoBackupEm === null
+                  ? 'Nenhum backup exportado ainda.'
+                  : `Último backup em ${formatarDataHora(ultimoBackupEm)}.`
+                : 'Exportar está livre; importar exige a conta conectada.'}
             </p>
           </div>
           <div className="ajustes-acoes">
@@ -244,7 +250,8 @@ export function SettingsPage() {
               variante="secundario"
               tamanho="icone"
               aria-label="Importar JSON"
-              title="Importar JSON"
+              title={podeEditar ? 'Importar JSON' : 'Importar JSON (disponível com conta conectada)'}
+              disabled={!podeEditar}
               onClick={() => arquivoRef.current?.click()}
             >
               <FileUp size={18} aria-hidden="true" />
@@ -255,6 +262,7 @@ export function SettingsPage() {
               type="file"
               accept="application/json,.json"
               aria-label="Selecionar arquivo de backup JSON"
+              disabled={!podeEditar}
               onChange={(evento) => void aoEscolherArquivo(evento)}
             />
           </div>
@@ -322,12 +330,30 @@ export function SettingsPage() {
         </h2>
         <div className="ajustes-linha">
           <div className="ajustes-info">
-            <p className="ajustes-rotulo">Apagar todos os dados</p>
+            <p className="ajustes-rotulo">Termos de uso e privacidade</p>
             <p className="ajustes-descricao">
-              Remove itens e ajustes salvos neste app. Exporte um backup antes.
+              Documento aceito no cadastro. Versão vigente aplicada à sua conta.
             </p>
           </div>
-          <Button variante="perigo" tamanho="pequeno" onClick={() => setEtapaLimpar(1)}>
+          <Link className="ajustes-link" to="/termos">
+            Ler os termos
+          </Link>
+        </div>
+        <div className="ajustes-linha">
+          <div className="ajustes-info">
+            <p className="ajustes-rotulo">Apagar todos os dados</p>
+            <p className="ajustes-descricao">
+              {podeEditar
+                ? 'Remove itens e ajustes salvos neste app. Exporte um backup antes.'
+                : 'Disponível com a conta conectada.'}
+            </p>
+          </div>
+          <Button
+            variante="perigo"
+            tamanho="pequeno"
+            disabled={!podeEditar}
+            onClick={() => setEtapaLimpar(1)}
+          >
             <Trash2 size={16} aria-hidden="true" />
             Apagar tudo
           </Button>

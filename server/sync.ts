@@ -8,6 +8,7 @@ import {
 import type { Item } from '@shared/schemas/item'
 import { prisma } from './prisma'
 import { exigirSessao } from './session'
+import { exigirTermosAceitos } from './termos'
 
 const JANELA_MS = 5 * 60 * 1000
 
@@ -171,7 +172,10 @@ export const syncRoutes = new Hono()
 
 syncRoutes.post('/sync/push', async (c) => {
   const sessao = await exigirSessao(c)
-  if (!sessao) return c.json({ erro: 'Não autenticado' }, 401)
+  if (!sessao) return c.json({ erro: 'Não autenticado', code: 'UNAUTHORIZED' }, 401)
+  if (!(await exigirTermosAceitos(sessao.userId))) {
+    return c.json({ erro: 'Aceite os termos de uso para sincronizar', code: 'TERMOS_PENDENTES' }, 403)
+  }
 
   const bruto: unknown = await c.req.json().catch(() => null)
   const parse = pushRequestSchema.safeParse(bruto)
@@ -203,7 +207,10 @@ syncRoutes.post('/sync/push', async (c) => {
 
 syncRoutes.get('/sync/pull', async (c) => {
   const sessao = await exigirSessao(c)
-  if (!sessao) return c.json({ erro: 'Não autenticado' }, 401)
+  if (!sessao) return c.json({ erro: 'Não autenticado', code: 'UNAUTHORIZED' }, 401)
+  if (!(await exigirTermosAceitos(sessao.userId))) {
+    return c.json({ erro: 'Aceite os termos de uso para sincronizar', code: 'TERMOS_PENDENTES' }, 403)
+  }
 
   const parse = pullQuerySchema.safeParse({
     cursor: c.req.query('cursor'),

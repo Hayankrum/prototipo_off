@@ -1,0 +1,68 @@
+.termos-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--cor-texto-suave);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.termos-voltar:hover {
+  color: var(--cor-texto);
+  text-decoration: underline;
+}
+
+.termos-versao {
+  margin-top: 4px;
+}
+
+.termos-indice-titulo {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.termos-indice ul {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.termos-indice a {
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.termos-indice a:hover {
+  color: var(--cor-texto);
+  text-decoration: underline;
+}
+
+.termos-secao {
+  scroll-margin-top: 80px;
+}
+
+.termos-texto {
+  margin-top: 10px;
+  color: var(--cor-texto-suave);
+  font-size: 0.925rem;
+  line-height: 1.6;
+}
+
+.termos-texto:first-of-type {
+  margin-top: 0;
+}
+
+.termos-rodape {
+  color: var(--cor-texto-terciario);
+  font-size: 0.85rem;
+}
+
+.termos-erro {
+  margin-top: 10px;
+  color: var(--cor-perigo);
+  font-size: 0.85rem;
+}

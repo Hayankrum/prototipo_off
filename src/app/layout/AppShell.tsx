@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { InstallBanner } from '../../features/pwa/InstallBanner'
 import { IOSInstallModal } from '../../features/pwa/IOSInstallModal'
 import { UpdateToast } from '../../features/pwa/UpdateToast'
+import { AvisoTermos } from '../../features/termos/AvisoTermos'
 import { BottomNav } from './BottomNav'
 import { TopNav } from './TopNav'
 import './shell.css'
@@ -23,6 +24,7 @@ export function AppShell() {
       <InstallBanner />
       <IOSInstallModal />
       <UpdateToast />
+      <AvisoTermos />
     </div>
   )
 }

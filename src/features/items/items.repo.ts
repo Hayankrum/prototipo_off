@@ -27,6 +27,10 @@ export async function listar({ busca = '', filtro = 'todos' }: OpcoesListagem = 
   })
 }
 
+export async function obter(id: string): Promise<Item | undefined> {
+  return db.items.get(id)
+}
+
 export async function listarParaBackup(): Promise<Item[]> {
   return db.items.orderBy('criadoEm').toArray()
 }

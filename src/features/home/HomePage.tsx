@@ -1,19 +1,26 @@
 import { Link } from 'react-router-dom'
-import { AlertTriangle, CloudOff, CircleCheck, CircleDashed, ListTodo } from 'lucide-react'
+import { AlertTriangle, CircleCheck, CircleDashed, ListTodo, UserRound } from 'lucide-react'
 import appConfig from '../../app/app.config.json'
 import { useItemsStats } from '../items/useItems'
 import { useSettings } from '../settings/useSettings'
-import { useSyncStatus } from '../conta/useSyncStatus'
+import { useSessao } from '../conta/useSessao'
 import { diasDesde } from '../../shared/lib/date'
 import './home.css'
 
+const ESTATISTICAS_ZERADA = { total: 0, concluidos: 0, pendentes: 0 }
+
 export function HomePage() {
-  const { total, concluidos, pendentes } = useItemsStats()
+  const estatisticas = useItemsStats()
+  const sessao = useSessao()
   const { ultimoBackupEm } = useSettings()
-  const { fase } = useSyncStatus()
+
+  const autenticado = sessao !== null
+  const { total, concluidos, pendentes } = autenticado
+    ? estatisticas
+    : ESTATISTICAS_ZERADA
 
   const diasSemBackup = ultimoBackupEm === null ? null : diasDesde(ultimoBackupEm)
-  const avisoBackup = diasSemBackup === null || diasSemBackup > 30
+  const avisoBackup = autenticado && (diasSemBackup === null || diasSemBackup > 30)
 
   return (
     <div className="pagina">
@@ -30,7 +37,8 @@ export function HomePage() {
 
           <p className="hero-texto">
             Um app de itens que funciona <strong>100% offline</strong>. Tudo fica salvo primeiro
-            neste dispositivo — com conta opcional para sincronizar na nuvem.
+            neste dispositivo — <strong>entre com sua conta</strong> para criar itens e levar
+            tudo para a nuvem.
           </p>
         </div>
       </section>
@@ -59,12 +67,12 @@ export function HomePage() {
         </div>
       </section>
 
-      {fase === 'sem-sessao' ? (
+      {!autenticado ? (
         <div className="aviso aviso--compacto" role="status">
-          <CloudOff size={16} aria-hidden="true" />
+          <UserRound size={16} aria-hidden="true" />
           <span>
-            Sincronização desativada. <Link to="/conta">Conecte uma conta</Link> para levar seus
-            itens para a nuvem.
+            Sua lista está protegida. <Link to="/conta">Entre na sua conta</Link> para ver e
+            criar itens — nada é apagado ao sair.
           </span>
         </div>
       ) : null}

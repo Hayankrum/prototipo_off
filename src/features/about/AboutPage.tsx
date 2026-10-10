@@ -22,7 +22,7 @@ const FUNCIONALIDADES = [
   { icone: Smartphone, texto: 'PWA instalável na tela inicial' },
   { icone: Palette, texto: 'Tema claro e escuro' },
   { icone: HardDrive, texto: 'Backup em arquivo JSON' },
-  { icone: Cloud, texto: 'Sincronização opcional com conta' },
+  { icone: Cloud, texto: 'Criar e sincronizar com conta' },
   { icone: ShieldCheck, texto: 'Sem rastreamento' },
   { icone: Database, texto: 'Dados salvos primeiro no dispositivo' },
 ] as const
@@ -65,9 +65,9 @@ export function AboutPage() {
         <h2 className="cartao-titulo">100% offline</h2>
         <p className="sobre-texto">
           A internet é usada uma única vez, para baixar o app. Depois da primeira abertura, tudo
-          funciona sem rede: código, telas e dados ficam no seu dispositivo. A sincronização com a
-          nuvem é <strong>opcional</strong> e só acontece se você conectar uma conta — em segundo
-          plano, sem bloquear o uso.
+          funciona sem rede: código, telas e dados ficam no seu dispositivo. Criar e editar itens
+          exige a conta conectada — que também segue funcionando offline — e a sincronização com
+          a nuvem acontece em segundo plano, sem bloquear o uso.
         </p>
       </section>
 
@@ -75,9 +75,14 @@ export function AboutPage() {
         <h2 className="cartao-titulo">Onde ficam os dados</h2>
         <p className="sobre-texto">
           Seus itens ficam no banco <strong>IndexedDB</strong> deste navegador, neste dispositivo.
-          Nada sai daqui sem uma conta conectada. Se você apagar os dados do navegador ou
-          desinstalar o app, os itens vão junto — por isso exporte um backup de vez em quando.
+          Nada sai daqui sem uma conta conectada, e a lista fica oculta enquanto você estiver
+          fora da conta. Se você apagar os dados do navegador ou desinstalar o app, os itens vão
+          junto — por isso exporte um backup de vez em quando.
         </p>
+        <Link className="sobre-link" to="/termos">
+          Termos de uso e privacidade
+          <ExternalLink size={16} aria-hidden="true" />
+        </Link>
         <Link className="sobre-link" to="/conta">
           Ir para Conta
           <ExternalLink size={16} aria-hidden="true" />

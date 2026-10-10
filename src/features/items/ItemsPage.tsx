@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Plus, Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Button } from '../../shared/ui/Button'
 import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { Modal } from '../../shared/ui/Modal'
 import { useToast } from '../../shared/ui/Toast'
+import { usePodeEditar } from '../conta/usePodeEditar'
 import type { FiltroItens, Item } from '../../db/schema'
 import * as itemsRepo from './items.repo'
 import type { EntradaItem } from './items.repo'
@@ -22,6 +24,7 @@ type Edicao = { modo: 'criar' } | { modo: 'editar'; item: Item }
 
 export function ItemsPage() {
   const { mostrar } = useToast()
+  const podeEditar = usePodeEditar()
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState<FiltroItens>('todos')
   const [edicao, setEdicao] = useState<Edicao | null>(null)
@@ -31,6 +34,7 @@ export function ItemsPage() {
   const filtrando = busca.trim() !== '' || filtro !== 'todos'
 
   async function salvar(entrada: EntradaItem) {
+    if (!podeEditar) return
     if (edicao?.modo === 'editar') {
       await itemsRepo.atualizar(edicao.item.id, entrada)
       mostrar('Item atualizado', { tipo: 'sucesso' })
@@ -42,14 +46,38 @@ export function ItemsPage() {
   }
 
   async function alternar(item: Item) {
+    if (!podeEditar) return
     await itemsRepo.alternarConcluido(item)
   }
 
   async function confirmarExclusao() {
-    if (!itemExcluir) return
+    if (!podeEditar || !itemExcluir) return
     await itemsRepo.excluir(itemExcluir.id)
     setItemExcluir(null)
     mostrar('Item excluído', { tipo: 'info' })
+  }
+
+  if (!podeEditar) {
+    return (
+      <div className="pagina">
+        <div className="pagina-cabecalho">
+          <div>
+            <h1 className="pagina-titulo">Itens</h1>
+            <p className="pagina-subtitulo">Entre na sua conta para ver e criar itens.</p>
+          </div>
+        </div>
+
+        <div className="lista-vazia">
+          <p className="lista-vazia-titulo">Sua lista está protegida</p>
+          <p>
+            Os itens deste aparelho só aparecem com uma conta conectada — nada é apagado ao sair.
+          </p>
+          <Link className="btn btn--primario" to="/conta">
+            Entrar ou criar conta
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -102,6 +130,7 @@ export function ItemsPage() {
       <ItemList
         itens={itens}
         filtrando={filtrando}
+        podeEditar={podeEditar}
         aoAlternar={(item) => void alternar(item)}
         aoEditar={(item) => setEdicao({ modo: 'editar', item })}
         aoExcluir={(item) => setItemExcluir(item)}
