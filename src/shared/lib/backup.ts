@@ -18,21 +18,18 @@ export type ResultadoValidacao = { ok: true; backup: ArquivoBackup } | { ok: fal
 
 export type ResultadoImportacao = { ok: true; total: number } | { ok: false; erro: string }
 
-type ItemBackup = Partial<Item> & { atualizadoEm?: number; deletadoEm?: number }
-
 function validarItem(bruto: unknown, indice: number): Item | { erro: string } {
   if (typeof bruto !== 'object' || bruto === null) {
     return { erro: `Item ${indice + 1} inválido.` }
   }
-  const item = bruto as ItemBackup
+  const item = bruto as Partial<Item>
   if (typeof item.id !== 'string' || item.id === '') {
     return { erro: `Item ${indice + 1} sem id.` }
   }
   if (typeof item.titulo !== 'string') {
     return { erro: `Item ${indice + 1} sem título.` }
   }
-  const updatedAt = typeof item.updatedAt === 'number' ? item.updatedAt : item.atualizadoEm
-  if (typeof item.criadoEm !== 'number' || typeof updatedAt !== 'number') {
+  if (typeof item.criadoEm !== 'number' || typeof item.updatedAt !== 'number') {
     return { erro: `Item ${indice + 1} com datas inválidas.` }
   }
   if (typeof item.concluido !== 'boolean') {
@@ -44,10 +41,9 @@ function validarItem(bruto: unknown, indice: number): Item | { erro: string } {
     descricao: typeof item.descricao === 'string' ? item.descricao : '',
     concluido: item.concluido,
     criadoEm: item.criadoEm,
-    updatedAt,
+    updatedAt: item.updatedAt,
   }
-  const deletedAt = typeof item.deletedAt === 'number' ? item.deletedAt : item.deletadoEm
-  if (typeof deletedAt === 'number') normalizado.deletedAt = deletedAt
+  if (typeof item.deletedAt === 'number') normalizado.deletedAt = item.deletedAt
   return normalizado
 }
 
