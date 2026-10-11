@@ -138,7 +138,6 @@ export function ContaPage() {
               onChange={(evento) => setEmail(evento.target.value)}
               autoComplete="email"
               placeholder="voce@exemplo.com"
-              autoFocus
               required
             />
             <Input
