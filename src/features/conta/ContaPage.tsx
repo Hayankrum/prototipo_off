@@ -7,11 +7,17 @@ import { useToast } from '../../shared/ui/Toast'
 import { tempoRelativo } from '../../shared/lib/date'
 import { pluralizar } from '../../shared/lib/texto'
 import { contarPendentes } from '../../db/outbox.repo'
-import { sincronizarAgora } from '../../sync/syncEngine'
+import { pausarSync, sincronizarAgora } from '../../sync/syncEngine'
 import { LIMITE_SENHA, criarConta, entrar, sair } from './conta.api'
 import { aceitarTermos } from './termos.api'
 import { soltarCampoFocado } from '../../shared/lib/dom'
-import { conectar, desconectar } from './conta.repo'
+import {
+  conectar,
+  desconectar,
+  finalizarTransicaoDeConta,
+  iniciarTransicaoDeConta,
+  type ResultadoPreparacao,
+} from './conta.repo'
 import { DESCRICOES_FASE, iconeDaFase } from './sync-estado'
 import { useSessao } from './useSessao'
 import { useSyncStatus } from './useSyncStatus'
@@ -55,7 +61,12 @@ export function ContaPage() {
     }
     setErroForm(null)
     setEnviando(true)
+    // Trava o sync antes do cookie mudar: sem isso um lote da conta antiga
+    // poderia ser enviado com a sessão nova e o servidor adotaria os itens.
+    const liberar = await pausarSync()
+    let resultado: ResultadoPreparacao | null = null
     try {
+      await iniciarTransicaoDeConta()
       const novaSessao =
         modo === 'criar'
           ? await criarConta({ email: emailLimpo, senha, nome })
@@ -69,41 +80,57 @@ export function ContaPage() {
           /* vira pendência para o pop-up */
         }
       }
-      const resultado = await conectar(novaSessao)
+      resultado = await conectar(novaSessao)
       // O formulário vai desmontar com o campo ainda focado; sem isto o
       // teclado/barra de autocompletar do celular fica presa na tela.
       soltarCampoFocado()
       setSenha('')
       setVerSenha(false)
-      await sincronizarAgora()
+    } catch (erro) {
+      setErroForm(erro instanceof Error ? erro.message : 'Não foi possível completar a operação.')
+    } finally {
+      try {
+        await finalizarTransicaoDeConta()
+      } finally {
+        // A trava precisa ser liberada mesmo se a limpeza falhar, senão o
+        // sync desta aba fica pausado para sempre.
+        liberar()
+        setEnviando(false)
+      }
+    }
+    await sincronizarAgora()
+    if (resultado !== null) {
       mostrar(
         resultado === 'conta-alterada'
           ? 'Conectado. Os dados da conta anterior foram apagados deste aparelho.'
           : 'Conta conectada. Sincronizando seus itens…',
         { tipo: 'sucesso' },
       )
-    } catch (erro) {
-      setErroForm(erro instanceof Error ? erro.message : 'Não foi possível completar a operação.')
-    } finally {
-      setEnviando(false)
     }
   }
 
   async function aoSair() {
     setSaindo(true)
+    const liberar = await pausarSync()
     try {
+      await iniciarTransicaoDeConta()
       await sair()
       await desconectar()
       soltarCampoFocado()
-      await sincronizarAgora()
       mostrar('Desconectado. Seus itens continuam salvos neste aparelho — entre de novo para vê-los.', {
         tipo: 'info',
       })
     } catch {
       mostrar('Não foi possível sair da conta', { tipo: 'erro' })
     } finally {
-      setSaindo(false)
+      try {
+        await finalizarTransicaoDeConta()
+      } finally {
+        liberar()
+        setSaindo(false)
+      }
     }
+    await sincronizarAgora()
   }
 
   if (sessao === null) {

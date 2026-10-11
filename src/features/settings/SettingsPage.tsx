@@ -35,6 +35,7 @@ import {
 } from '../../shared/lib/storage'
 import { useInstallPrompt } from '../pwa/useInstallPrompt'
 import { usePodeEditar } from '../conta/usePodeEditar'
+import { pausarSync, sincronizarAgora } from '../../sync/syncEngine'
 import { useSettings } from './useSettings'
 import './settings.css'
 
@@ -120,6 +121,8 @@ export function SettingsPage() {
 
   async function apagarDados() {
     if (!podeEditar) return
+    // Trava o sync para o pull em andamento não regravar nada no meio da limpeza.
+    const liberar = await pausarSync()
     try {
       await apagarTudo()
       setEtapaLimpar(0)
@@ -127,7 +130,11 @@ export function SettingsPage() {
       await carregarArmazenamento()
     } catch {
       mostrar('Não foi possível apagar os dados', { tipo: 'erro' })
+    } finally {
+      liberar()
     }
+    // Cursor zerado: baixa de novo só o que existe na conta conectada.
+    await sincronizarAgora()
   }
 
   async function solicitarEspaco() {

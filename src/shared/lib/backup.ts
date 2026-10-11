@@ -1,5 +1,6 @@
 import appConfig from '../../app/app.config.json'
-import { CHAVES, limpar as limparConfig, definir as definirConfig } from '../../db/config.repo'
+import { CHAVES, limparExceto, definir as definirConfig } from '../../db/config.repo'
+import * as syncState from '../../db/sync-state.repo'
 import { SCHEMA_VERSION, type Item } from '../../db/schema'
 import * as itemsRepo from '../../features/items/items.repo'
 
@@ -169,5 +170,9 @@ export async function lerInfoBackup(file: File): Promise<ResultadoValidacao> {
 
 export async function apagarTudo(): Promise<void> {
   await itemsRepo.limparTodos()
-  await limparConfig()
+  // Sem o cursor zerado o pull não baixaria nada e a lista ficaria vazia.
+  await syncState.definirCursor('0')
+  // Mantém a conta dona dos dados locais: sem ela, uma importação posterior
+  // seria aceita como "primeiro acesso" e enviada para qualquer conta.
+  await limparExceto([CHAVES.ultimoUsuarioId])
 }

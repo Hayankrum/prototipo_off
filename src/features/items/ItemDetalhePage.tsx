@@ -8,6 +8,7 @@ import { Modal } from '../../shared/ui/Modal'
 import { useToast } from '../../shared/ui/Toast'
 import { formatarDataHora } from '../../shared/lib/date'
 import { usePodeEditar } from '../conta/usePodeEditar'
+import { useSessao } from '../conta/useSessao'
 import type { Item } from '../../db/schema'
 import * as itemsRepo from './items.repo'
 import type { EntradaItem } from './items.repo'
@@ -26,6 +27,8 @@ export function ItemDetalhePage() {
   const navigate = useNavigate()
   const { mostrar } = useToast()
   const podeEditar = usePodeEditar()
+  const sessao = useSessao()
+  const autor = sessao?.nome?.trim() || sessao?.email || null
 
   const [editando, setEditando] = useState(false)
   const [confirmandoExcluir, setConfirmandoExcluir] = useState(false)
@@ -139,6 +142,11 @@ export function ItemDetalhePage() {
       </div>
 
       <section className="cartao item-detalhe" aria-label="Detalhes do item">
+        {autor ? (
+          <p className="item-autor">
+            Publicado por <strong>{autor}</strong>
+          </p>
+        ) : null}
         <p className={`item-situacao${item.concluido ? ' item-situacao--ok' : ''}`}>
           {item.concluido ? 'Concluído' : 'Pendente'}
         </p>

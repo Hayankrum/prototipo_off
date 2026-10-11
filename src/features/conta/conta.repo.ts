@@ -1,10 +1,8 @@
 import db from '../../db/database'
-import { definir, obter } from '../../db/config.repo'
+import { CHAVES, definir, obter, remover } from '../../db/config.repo'
 import { normalizarItem, novaMutacao } from '../../db/outbox.repo'
 import * as syncState from '../../db/sync-state.repo'
 import type { SessaoLocal } from '@shared/schemas/usuario'
-
-export const CHAVE_ULTIMO_USUARIO = 'ultimoUsuarioId'
 
 const TABELA = 'items'
 
@@ -69,7 +67,7 @@ export type ResultadoPreparacao = 'mesmo-usuario' | 'conta-alterada' | 'primeiro
  */
 export async function conectar(sessao: SessaoLocal): Promise<ResultadoPreparacao> {
   await syncState.definirSessao(sessao)
-  const anterior = await obter(CHAVE_ULTIMO_USUARIO)
+  const anterior = await obter(CHAVES.ultimoUsuarioId)
   let resultado: ResultadoPreparacao
   if (anterior === undefined || anterior === null) {
     await enfileirarItensParaSync()
@@ -81,8 +79,53 @@ export async function conectar(sessao: SessaoLocal): Promise<ResultadoPreparacao
     await apagarDadosLocais()
     resultado = 'conta-alterada'
   }
-  await definir(CHAVE_ULTIMO_USUARIO, sessao.usuarioId)
+  await definir(CHAVES.ultimoUsuarioId, sessao.usuarioId)
   return resultado
+}
+
+/**
+ * Sinaliza (antes de o cookie mudar) que uma troca de conta está em
+ * andamento: o sync em outras abas/instâncias interrompe push e pull na hora,
+ * para nenhum lote da conta antiga ser enviado com o cookie novo.
+ *
+ * O valor é um timestamp: uma troca abandonada por crash expira sozinha e o
+ * sync volta a funcionar (nunca trava para sempre).
+ */
+const TIMEOUT_TRANSICAO_MS = 60_000
+
+export async function iniciarTransicaoDeConta(): Promise<void> {
+  await definir(CHAVES.transicaoConta, Date.now())
+}
+
+export async function finalizarTransicaoDeConta(): Promise<void> {
+  await remover(CHAVES.transicaoConta)
+}
+
+export async function transicaoEmAndamento(): Promise<boolean> {
+  const valor = await obter(CHAVES.transicaoConta)
+  if (typeof valor !== 'number') return false
+  if (Date.now() - valor > TIMEOUT_TRANSICAO_MS) {
+    await remover(CHAVES.transicaoConta)
+    return false
+  }
+  return true
+}
+
+/**
+ * Última linha de defesa do sync: garante que os dados locais pertencem à
+ * conta da sessão do servidor. Se o cookie mudou de conta sem passar por
+ * `conectar` (outra aba, app fechado no meio da troca), apaga os dados locais
+ * em vez de empurrar itens de uma conta para a outra.
+ */
+export async function alinharContaLocal(usuarioId: string): Promise<void> {
+  const anterior = await obter(CHAVES.ultimoUsuarioId)
+  if (anterior === usuarioId) return
+  if (anterior !== undefined && anterior !== null) {
+    await apagarDadosLocais()
+  } else {
+    await enfileirarItensParaSync()
+  }
+  await definir(CHAVES.ultimoUsuarioId, usuarioId)
 }
 
 /** Sai da conta no servidor e limpa a sessão local (os dados ficam no aparelho). */

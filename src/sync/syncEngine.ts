@@ -16,6 +16,7 @@ import {
 import * as syncState from '../db/sync-state.repo'
 import type { Item } from '../db/schema'
 import { aplicarRemoto } from '../features/items/items.repo'
+import { alinharContaLocal, transicaoEmAndamento } from '../features/conta/conta.repo'
 
 export type FaseSync = 'parado' | 'ocioso' | 'sincronizando' | 'sem-sessao' | 'sem-conexao' | 'erro'
 
@@ -65,6 +66,52 @@ let tentativas = 0
 let timerTentativa: ReturnType<typeof setTimeout> | null = null
 let timerDebounce: ReturnType<typeof setTimeout> | null = null
 
+// Trava de troca de conta: pausas > 0 impede novas rodadas e a geração muda
+// toda vez que a trava é acionada, fazendo as fetches em andamento abortarem
+// antes de gravar qualquer dado (nada da conta antiga vaza para a nova).
+let pausas = 0
+let geracao = 0
+const esperandoParada = new Set<() => void>()
+
+const TIMEOUT_PAUSA_MS = 8_000
+
+function sinalizarParada(): void {
+  for (const resolver of esperandoParada) resolver()
+  esperandoParada.clear()
+}
+
+function aguardarParada(): Promise<void> {
+  if (!rodando) return Promise.resolve()
+  return new Promise<void>((resolver) => {
+    const temporizador = setTimeout(resolver, TIMEOUT_PAUSA_MS)
+    esperandoParada.add(() => {
+      clearTimeout(temporizador)
+      resolver()
+    })
+  })
+}
+
+/**
+ * Interrompe o sync atual e impede novas rodadas até a função retornada ser
+ * chamada. Use em volta de entrar/sair da conta.
+ */
+export async function pausarSync(): Promise<() => void> {
+  pausas += 1
+  geracao += 1
+  await aguardarParada()
+  let liberado = false
+  return () => {
+    if (liberado) return
+    liberado = true
+    pausas = Math.max(0, pausas - 1)
+  }
+}
+
+async function devoParar(minhaGeracao: number): Promise<boolean> {
+  if (pausas > 0 || minhaGeracao !== geracao) return true
+  return transicaoEmAndamento()
+}
+
 function proximoBackoff(): number {
   const ms = Math.min(TIMEOUT_BACKOFF_MAX_MS, TIMEOUT_BACKOFF_BASE_MS * 2 ** tentativas)
   tentativas += 1
@@ -80,11 +127,16 @@ function agendarTentativa(ms: number): void {
   publicar({ proximaTentativaEm: Date.now() + ms })
 }
 
-async function push(): Promise<void> {
+async function push(minhaGeracao: number): Promise<void> {
   for (let lote = 0; lote < MAX_LOTES_PUSH; lote += 1) {
+    if (await devoParar(minhaGeracao)) return
     const { envio, descartaveis } = await compactarParaEnvio(LIMITE_LOTE_PUSH)
     if (envio.length === 0) return
+    // O lote só pode sair se a conta ainda for a mesma da compactação: o
+    // cookie pode já pertencer a outra conta e o servidor adotaria os itens.
+    if (await devoParar(minhaGeracao)) return
     const resposta = await enviarPush(envio.map(paraWire))
+    if (await devoParar(minhaGeracao)) return
     const porId = new Map(resposta.resultados.map((resultado) => [resultado.mutacaoId, resultado]))
     const confirmados: string[] = [...descartaveis]
     const vencedoresRemotos: Item[] = []
@@ -106,10 +158,13 @@ async function push(): Promise<void> {
   }
 }
 
-async function pull(): Promise<void> {
+async function pull(minhaGeracao: number): Promise<void> {
   for (let pagina = 0; pagina < MAX_PAGINAS_PULL; pagina += 1) {
+    if (await devoParar(minhaGeracao)) return
     const { cursor } = await syncState.obter()
     const resposta = await puxar(cursor, LIMITE_PULL)
+    // Resposta da conta antiga nunca é gravada depois de uma troca.
+    if (await devoParar(minhaGeracao)) return
     if (resposta.registros.length > 0) {
       await aplicarRemoto(resposta.registros)
     }
@@ -123,8 +178,11 @@ async function rodar(): Promise<void> {
     reexecutar = true
     return
   }
+  if (pausas > 0) return
   rodando = true
   reexecutar = false
+  const minhaGeracao = geracao
+  let interrompida = false
   publicar({ fase: 'sincronizando', ultimoErro: null, proximaTentativaEm: null })
   try {
     const estado = await syncState.obter()
@@ -136,6 +194,11 @@ async function rodar(): Promise<void> {
     } catch (erro) {
       if (erro instanceof ErroRede) sessaoServico = 'rede'
       else throw erro
+    }
+
+    if (await devoParar(minhaGeracao)) {
+      interrompida = true
+      return
     }
 
     if (sessaoServico === 'rede') {
@@ -159,9 +222,17 @@ async function rodar(): Promise<void> {
 
     sessao = sessaoServico
     await syncState.definirSessao(sessao)
+    // Se o cookie já é de outra conta que os dados locais (troca feita em
+    // outra aba ou app fechado no meio), apaga em vez de misturar contas.
+    await alinharContaLocal(sessao.usuarioId)
 
-    await push()
-    await pull()
+    if (await devoParar(minhaGeracao)) {
+      interrompida = true
+      return
+    }
+
+    await push(minhaGeracao)
+    await pull(minhaGeracao)
 
     const ultimaSincronizacao = Date.now()
     await syncState.marcarSincronizacao(ultimaSincronizacao)
@@ -173,6 +244,10 @@ async function rodar(): Promise<void> {
       proximaTentativaEm: null,
     })
   } catch (erro) {
+    if (pausas > 0 || minhaGeracao !== geracao) {
+      interrompida = true
+      return
+    }
     const pendentes = await contarPendentes().catch(() => status.pendentes)
     const ehApi401 = erro instanceof ErroApi && erro.status === 401
     if (ehApi401) {
@@ -190,6 +265,11 @@ async function rodar(): Promise<void> {
     })
   } finally {
     rodando = false
+    if (interrompida) {
+      const pendentes = await contarPendentes().catch(() => status.pendentes)
+      publicar({ fase: 'ocioso', pendentes, proximaTentativaEm: null, ultimoErro: null })
+    }
+    sinalizarParada()
     if (reexecutar) {
       reexecutar = false
       if (status.fase === 'ocioso') void rodar()
