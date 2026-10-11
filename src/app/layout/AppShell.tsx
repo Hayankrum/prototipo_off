@@ -12,11 +12,13 @@ import './shell.css'
 export function AppShell() {
   const local = useLocation()
 
-  // Troca de rota: se um campo perdeu o foco sem desmontar direito, o teclado
-  // / barra de autocompletar do celular continua na tela. Força a saída.
+  // Navegação: se um campo desmontou/perdeu o foco sem avisar, o teclado e a
+  // barra de autocompletar do celular continuam na tela. Força a saída.
+  // Depende de location.key para rodar em QUALQUER navegação (inclusive
+  // repetir o mesmo link), e não só quando o caminho muda.
   useEffect(() => {
     soltarCampoFocado()
-  }, [local.pathname])
+  }, [local.key])
 
   return (
     <div className="shell">
