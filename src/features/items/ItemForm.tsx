@@ -51,7 +51,6 @@ export function ItemForm({ item, aoCancelar, aoSalvar }: ItemFormProps) {
         onChange={(evento) => setTitulo(evento.target.value)}
         placeholder="Ex.: Comprar mantimentos"
         maxLength={LIMITE_TITULO}
-        autoFocus
         erro={erro ?? undefined}
         required
       />
