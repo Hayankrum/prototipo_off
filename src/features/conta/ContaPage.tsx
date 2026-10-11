@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { LogOut, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, LogOut, RefreshCw, ShieldCheck } from 'lucide-react'
 import { Button } from '../../shared/ui/Button'
 import { Input } from '../../shared/ui/Input'
 import { useToast } from '../../shared/ui/Toast'
@@ -10,6 +10,7 @@ import { contarPendentes } from '../../db/outbox.repo'
 import { sincronizarAgora } from '../../sync/syncEngine'
 import { LIMITE_SENHA, criarConta, entrar, sair } from './conta.api'
 import { aceitarTermos } from './termos.api'
+import { soltarCampoFocado } from '../../shared/lib/dom'
 import { conectar, desconectar } from './conta.repo'
 import { DESCRICOES_FASE, iconeDaFase } from './sync-estado'
 import { useSessao } from './useSessao'
@@ -35,6 +36,7 @@ export function ContaPage() {
   const [enviando, setEnviando] = useState(false)
   const [saindo, setSaindo] = useState(false)
   const [aceitouTermos, setAceitouTermos] = useState(false)
+  const [verSenha, setVerSenha] = useState(false)
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
@@ -68,7 +70,11 @@ export function ContaPage() {
         }
       }
       const resultado = await conectar(novaSessao)
+      // O formulário vai desmontar com o campo ainda focado; sem isto o
+      // teclado/barra de autocompletar do celular fica presa na tela.
+      soltarCampoFocado()
       setSenha('')
+      setVerSenha(false)
       await sincronizarAgora()
       mostrar(
         resultado === 'conta-alterada'
@@ -88,6 +94,7 @@ export function ContaPage() {
     try {
       await sair()
       await desconectar()
+      soltarCampoFocado()
       await sincronizarAgora()
       mostrar('Desconectado. Seus itens continuam salvos neste aparelho — entre de novo para vê-los.', {
         tipo: 'info',
@@ -136,12 +143,24 @@ export function ContaPage() {
             />
             <Input
               label="Senha"
-              type="password"
+              type={verSenha ? 'text' : 'password'}
               value={senha}
               onChange={(evento) => setSenha(evento.target.value)}
               autoComplete={modo === 'criar' ? 'new-password' : 'current-password'}
               minLength={LIMITE_SENHA}
               required
+              sufixo={
+                <button
+                  type="button"
+                  className="campo-sufixo"
+                  onClick={() => setVerSenha((valor) => !valor)}
+                  aria-label={verSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                  aria-pressed={verSenha}
+                  title={verSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {verSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              }
             />
             {modo === 'criar' ? (
               <Input
