@@ -256,7 +256,8 @@ termosRoutes.post("/termos/aceitar", async (c) => {
 });
 
 // server/sync.ts
-var JANELA_MS = 5 * 60 * 1e3;
+var JANELA_FUTURO_MS = 5 * 60 * 1e3;
+var JANELA_PASSADO_MS = 90 * 24 * 60 * 60 * 1e3;
 function toWire(item) {
   const base = {
     id: item.id,
@@ -271,7 +272,8 @@ function toWire(item) {
 }
 async function processarLote(userId, mutacoes, resultados) {
   const agoraMs = Date.now();
-  const limiteTs = agoraMs + JANELA_MS;
+  const limiteTs = agoraMs + JANELA_FUTURO_MS;
+  const pisoTs = agoraMs - JANELA_PASSADO_MS;
   await prisma.$transaction(async (tx) => {
     const inicial = await tx.user.update({
       where: { id: userId },
@@ -294,6 +296,9 @@ async function processarLote(userId, mutacoes, resultados) {
     };
     for (const mut of mutacoes) {
       if (mut.tabela !== TABELA_ITEMS) {
+        await tx.syncMutation.create({
+          data: { id: mut.id, userId, appliedAt: BigInt(agoraMs) }
+        });
         resultados.push({ mutacaoId: mut.id, status: "invalida" });
         continue;
       }
@@ -314,10 +319,13 @@ async function processarLote(userId, mutacoes, resultados) {
       }
       const existente = await tx.item.findUnique({ where: { id: mut.registroId } });
       if (existente && existente.userId !== userId) {
+        await tx.syncMutation.create({
+          data: { id: mut.id, userId, appliedAt: BigInt(agoraMs) }
+        });
         resultados.push({ mutacaoId: mut.id, status: "invalida" });
         continue;
       }
-      const updatedAt = Math.min(mut.payload.updatedAt, limiteTs);
+      const updatedAt = Math.min(Math.max(mut.payload.updatedAt, pisoTs), limiteTs);
       let deletedAt = mut.payload.deletedAt;
       if (deletedAt !== void 0 && deletedAt > updatedAt) deletedAt = updatedAt;
       if (existente && existente.updatedAt > BigInt(updatedAt)) {
@@ -338,18 +346,19 @@ async function processarLote(userId, mutacoes, resultados) {
         descricao: mut.payload.descricao,
         concluido: mut.payload.concluido,
         updatedAt: BigInt(updatedAt),
-        deletedAt: deletedAt === void 0 ? null : BigInt(deletedAt),
         serverSeq: seq
       };
+      const dadosComTombstone = deletedAt === void 0 ? dadosItem : { ...dadosItem, deletedAt: BigInt(deletedAt) };
       const gravado = await tx.item.upsert({
         where: { id: mut.registroId },
         create: {
           id: mut.registroId,
           userId,
           criadoEm: BigInt(mut.payload.criadoEm),
-          ...dadosItem
+          deletedAt: null,
+          ...dadosComTombstone
         },
-        update: dadosItem
+        update: dadosComTombstone
       });
       await tx.syncMutation.create({
         data: { id: mut.id, userId, appliedAt: BigInt(agoraMs) }
